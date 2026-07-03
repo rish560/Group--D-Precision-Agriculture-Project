@@ -186,7 +186,7 @@ The application will help users manage farm information easily, reduce manual wo
 
 
 
-Name: Pooja Sri S
+Name: Pooja sri S
 
 Project Name: Precision Agriculture Platform
 
