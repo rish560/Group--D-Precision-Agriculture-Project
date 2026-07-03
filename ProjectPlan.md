@@ -138,3 +138,48 @@ The frontend of the application will be developed as a web application using Rea
 ## Conclusion:
 
 FarmVerse is a scalable Precision Agriculture Management Platform that digitizes farm operations and improves efficiency. It enables users to manage farms, crops, and users through a secure and user-friendly system while supporting future enhancements and scalability.
+
+
+
+
+Name: Sangeetha T
+Project Name : FarmVerse – Precision Agriculture Platform
+Tech Stack : React,Spring Boot,MySQL
+
+1. Project Statement
+Agriculture management becomes difficult when farm and crop information is maintained manually. Managing multiple farms, updating crop records, and tracking farming activities can take a lot of time. A digital platform can simplify these tasks and improve overall farm management.
+
+2. Proposed Solution
+The main objective is to develop a web-based application that helps users manage farms, crops, and user information in a simple and organized way. The system provides easy access to farm records and supports better management of agricultural activities.
+
+3. Main Features
+•	Secure login for different users.
+•	Add, edit, view, and delete farm details.
+•	Maintain crop records and update crop status.
+•	Store all information in a MySQL database.
+•	Easy-to-use dashboard for quick access.
+
+4. Database Design(MySQL)
+User - Stores user login details and role like id,username,password,role,dob
+Farm - Stores farm information like id,farm_name,geo_location,owner_id
+Crop - Stores crop information like id,crop_name,farm_id,status
+
+5. System Modules(Backend/Spring Boot)
+User Module are User Login,View Profile,Role-based Access
+Farm Module are Add Farm,View Farm,Edit Farm,Delete Farm
+Crop Module are Add Crop,View Crop,Update Crop Status,Delete Crop
+
+6. User Interface(Frotened/React)
+Login Screen : Users log in using their username and password.
+Dashboard : Shows farms, crops, and important information in one place.
+Management Pages : Simple forms for managing farms and crop records.
+
+7. Development Process
+Phase 1: Create the database and tables.
+Phase 2: Develop backend APIs using Spring Boot.
+Phase 3: Design the React frontend and connect it with the backend.
+Phase 4: Test the application, fix errors, and submit the final project.
+
+8. Expected Result
+The application will help users manage farm information easily, reduce manual work, improve record accuracy, and provide a simple platform for daily farm management.
+
