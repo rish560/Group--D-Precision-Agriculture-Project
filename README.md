@@ -283,10 +283,10 @@ Project documentation has been prepared and updated regularly.
 
 Documents include:
 
-* Frontend Documentation
-* Backend Documentation
-* Project Plan
-* README File
+* [Project Plan](Docs/ProjectPlan.md)
+* [Frontend Documentation](FRONTEND_DOCUMENTATION.md)
+* [Backend Documentation](BACKEND_DOCUMENTATION.md)
+* Individual Project Plans — available in the `Docs` folder
 
 ---
 
@@ -330,11 +330,7 @@ Backend Response
    ▼
 Frontend Displays Updated Information
 ```
-## Documentation
-* [Project Plan](Docs/ProjectPlan.md)
-* [Frontend Documentation](FRONTEND_DOCUMENTATION.md)
-* [Backend Documentation](BACKEND_DOCUMENTATION.md)
-* Individual Project Plans — available in the `Docs` folder
+
 ---
 
 # Conclusion
