@@ -45,3 +45,17 @@ The backend will be developed using Spring Boot and will provide RESTful APIs fo
 - Crop CRUD APIs
 - User Registration & Login
 - JWT-based Authentication & Authorization
+
+## Frontend
+The frontend will be developed as a web application using React and will provide a user-friendly interface for managing farms, crops, and users.
+
+**Frontend Pages**
+- Login Page
+- Register Page
+- Dashboard
+- Users Management Page
+- Farms Management Page
+- Crops Management Page
+
+## Conclusion
+FarmVerse is a scalable Precision Agriculture Management Platform that digitizes farm operations and improves efficiency. It enables users to manage farms, crops, and users through a secure and user-friendly system while supporting future enhancements and scalability.
