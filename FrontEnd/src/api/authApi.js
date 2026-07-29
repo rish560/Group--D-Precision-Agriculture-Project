@@ -17,13 +17,24 @@ export const login = async (payloadOrEmail, password) => {
     return mockLogin(emailValue, passwordValue);
   }
 
-  const response = await axiosInstance.post('/auth/login', { email: emailValue, password: passwordValue });
-  return response.data;
+  try {
+    const response = await axiosInstance.post('/auth/login', { email: emailValue, password: passwordValue });
+    return {
+      success: true,
+      token: response.data.token,
+      user: { email: emailValue, role: response.data.role },
+      role: response.data.role,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Login failed',
+    };
+  }
 };
 
 export const register = async (payload) => {
   if (!hasBackend) {
-    // Map role values for mock storage compatibility
     const mockPayload = {
       ...payload,
       role: payload.role === 'Guest User' ? 'Guest' : payload.role
@@ -33,13 +44,18 @@ export const register = async (payload) => {
 
   const apiPayload = {
     username: payload.fullName,
-    fullName: payload.fullName,
     email: payload.email,
-    phone: payload.phone,
     role: payload.role,
     password: payload.password,
   };
 
-  const response = await axiosInstance.post('/auth/register', apiPayload);
-  return response.data;
+  try {
+    const response = await axiosInstance.post('/auth/register', apiPayload);
+    return { success: true, ...response.data };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Registration failed',
+    };
+  }
 };
