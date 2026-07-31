@@ -19,7 +19,6 @@ import { Button } from '../components/ui/Button';
 const roleOptions = [
   { value: 'ADMIN', label: 'Admin' },
   { value: 'FARM_MANAGER', label: 'Farm Manager' },
-  { value: 'FARMER', label: 'Farmer' },
   { value: 'GUEST', label: 'Guest User' },
 ];
 
