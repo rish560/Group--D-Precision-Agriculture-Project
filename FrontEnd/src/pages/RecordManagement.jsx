@@ -36,44 +36,42 @@ const tableColumns = {
     ['expectedYield', 'Expected Yield']
   ],
   users: [
-    ['fullName', 'Full Name'],
+    ['username', 'Username'],
     ['email', 'Email'],
-    ['role', 'Role'],
-    ['phone', 'Phone Number']
+    ['role', 'Role']
   ]
 };
 
 const filtersList = {
   farms: ['Healthy', 'Monitoring', 'Optimized'],
   crops: ['Excellent', 'Stable', 'Watch', 'Critical'],
-  users: ['Admin', 'Farm Manager', 'Guest']
+  users: ['ADMIN', 'FARM_MANAGER', 'GUEST']
 };
 
 const farmFields = [
   { name: 'name', label: 'Farm Name', type: 'text', required: true },
   { name: 'location', label: 'Location', type: 'text', required: true },
-  { name: 'currentCrop', label: 'Crop / Current Crop', type: 'text' },
+  { name: 'currentCrop', label: 'Crop / Current Crop', type: 'text', required: true },
   { name: 'area', label: 'Area (e.g. 48 acres)', type: 'text', required: true },
-  { name: 'waterSource', label: 'Water Source', type: 'text' },
+  { name: 'waterSource', label: 'Water Source', type: 'text', required: true },
   { name: 'status', label: 'Status', type: 'select', options: ['Healthy', 'Monitoring', 'Optimized'], defaultValue: 'Healthy' }
 ];
 
 const cropFields = [
   { name: 'name', label: 'Crop Name', type: 'text', required: true },
   { name: 'farm', label: 'Assigned Farm', type: 'select', options: [], required: true },
-  { name: 'stage', label: 'Growth Stage', type: 'select', options: ['Seeding', 'Vegetative', 'Flowering', 'Maturity', 'Harvested'], defaultValue: 'Vegetative' },
-  { name: 'health', label: 'Crop Health', type: 'select', options: ['Excellent', 'Stable', 'Watch', 'Critical'], defaultValue: 'Excellent' },
+  { name: 'stage', label: 'Growth Stage', type: 'select', options: ['Seeding', 'Vegetative', 'Flowering', 'Maturity', 'Harvested'], defaultValue: 'Vegetative', required: true },
+ { name: 'health', label: 'Crop Health', type: 'select', options: ['Excellent', 'Stable', 'Watch', 'Critical'], defaultValue: 'Excellent', required: true },
   { name: 'plantingDate', label: 'Planting Date', type: 'date', required: true },
   { name: 'expectedYield', label: 'Expected Yield', type: 'text', required: true },
   { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Archived', 'Harvested'], defaultValue: 'Active' }
 ];
 
 const userFields = [
-  { name: 'fullName', label: 'Full Name', type: 'text', required: true },
+  { name: 'username', label: 'Username', type: 'text', required: true },
   { name: 'email', label: 'Email', type: 'text', required: true },
-  { name: 'role', label: 'Role', type: 'select', options: ['Admin', 'Farm Manager', 'Guest'], required: true },
-  { name: 'phone', label: 'Phone Number', type: 'text' },
-  { name: 'address', label: 'Address', type: 'text' }
+  { name: 'password', label: 'Password', type: 'password', required: true },
+  { name: 'role', label: 'Role', type: 'select', options: ['ADMIN', 'FARM_MANAGER', 'FARMER', 'GUEST'], required: true },
 ];
 
 export const RecordManagement = ({ resource, canManage = false, roleFilter, title }) => {
@@ -178,11 +176,9 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
   );
 
   // ── Effects ──
-  useEffect(() => {
-    if (isAddRoute) {
-      setMode('create');
-    }
-  }, [isAddRoute]);
+ useEffect(() => {
+  setMode(isAddRoute ? 'create' : null);
+}, [isAddRoute]);
 
   useEffect(() => {
     if (resource === 'crops') {
@@ -274,7 +270,10 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
           if (!savePayload.userId) savePayload.userId = user.id;
           if (!savePayload.owner && isFarmer) savePayload.owner = user.fullName;
           if (!savePayload.manager && isFarmer) savePayload.manager = user.fullName;
+          if (resource === 'farms' && !savePayload.ownerId) savePayload.ownerId = user.id;
         }
+        console.log("User:", user);
+        console.log("Save Payload:", savePayload);
         await apiSetup.create(savePayload);
       } else {
         await apiSetup.update(record.id, record);
@@ -396,6 +395,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                         <input
                           type={f.type}
                           required={f.required}
+                          autoComplete="off"
                           value={isLockedForManager ? (user?.fullName || '') : (record[f.name] || '')}
                           readOnly={isLockedForManager}
                           onChange={(e) => !isLockedForManager && setRecord((cur) => ({ ...cur, [f.name]: e.target.value }))}

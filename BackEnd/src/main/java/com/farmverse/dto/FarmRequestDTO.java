@@ -26,5 +26,13 @@ public class FarmRequestDTO {
     private BigDecimal area;
 
     @NotNull(message = "Owner ID is required")
-    private Long ownerId;
+private Long ownerId;
+
+private String currentCrop;
+
+private String waterSource;
+
+private String status;
+
+    
 }

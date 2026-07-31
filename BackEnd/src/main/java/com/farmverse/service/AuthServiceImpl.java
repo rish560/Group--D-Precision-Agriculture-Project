@@ -69,8 +69,10 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
 
         return LoginResponseDTO.builder()
-                .token(token)
-                .role(user.getRole())
-                .build();
+        .id(user.getId())
+        .email(user.getEmail())
+        .token(token)
+        .role(user.getRole())
+        .build();
     }
 }

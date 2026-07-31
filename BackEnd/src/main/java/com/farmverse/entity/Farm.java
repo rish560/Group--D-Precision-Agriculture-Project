@@ -39,10 +39,19 @@ public class Farm {
     @Column(nullable = false, length = 255)
     private String location;
 
-    @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal area;
+   @Column(nullable = false, precision = 12, scale = 2)
+private BigDecimal area;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+@Column(name = "current_crop", length = 150)
+private String currentCrop;
+
+@Column(name = "water_source", length = 150)
+private String waterSource;
+
+@Column(name = "status", length = 50)
+private String status;
+
+@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 

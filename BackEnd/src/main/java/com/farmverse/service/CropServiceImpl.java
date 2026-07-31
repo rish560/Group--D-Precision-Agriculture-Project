@@ -29,11 +29,15 @@ public class CropServiceImpl implements CropService {
         Farm farm = farmRepository.findById(cropRequestDTO.getFarmId())
                 .orElseThrow(() -> new ResourceNotFoundException("Farm not found"));
 
-        Crop crop = Crop.builder()
-                .cropName(cropRequestDTO.getCropName())
-                .season(cropRequestDTO.getSeason())
-                .farm(farm)
-                .build();
+       Crop crop = Crop.builder()
+        .cropName(cropRequestDTO.getCropName())
+        .season(cropRequestDTO.getSeason())
+        .stage(cropRequestDTO.getStage())
+        .health(cropRequestDTO.getHealth())
+        .plantingDate(cropRequestDTO.getPlantingDate())
+        .expectedYield(cropRequestDTO.getExpectedYield())
+        .farm(farm)
+        .build();
 
         return toResponseDTO(cropRepository.save(crop));
     }
@@ -68,9 +72,13 @@ public class CropServiceImpl implements CropService {
         Farm farm = farmRepository.findById(cropRequestDTO.getFarmId())
             .orElseThrow(() -> new ResourceNotFoundException("Farm not found"));
 
-        crop.setCropName(cropRequestDTO.getCropName());
-        crop.setSeason(cropRequestDTO.getSeason());
-        crop.setFarm(farm);
+            crop.setCropName(cropRequestDTO.getCropName());
+crop.setSeason(cropRequestDTO.getSeason());
+crop.setStage(cropRequestDTO.getStage());
+crop.setHealth(cropRequestDTO.getHealth());
+crop.setPlantingDate(cropRequestDTO.getPlantingDate());
+crop.setExpectedYield(cropRequestDTO.getExpectedYield());
+crop.setFarm(farm);
 
         return toResponseDTO(cropRepository.save(crop));
     }
@@ -93,11 +101,17 @@ public class CropServiceImpl implements CropService {
 
     private CropResponseDTO toResponseDTO(Crop crop) {
         return CropResponseDTO.builder()
-                .cropId(crop.getCropId())
-                .cropName(crop.getCropName())
-                .season(crop.getSeason())
-                .farmId(crop.getFarm().getFarmId())
-                .farmName(crop.getFarm().getFarmName())
-                .build();
+
+            .cropId(crop.getCropId())
+            .cropName(crop.getCropName())
+            .season(crop.getSeason())
+            .stage(crop.getStage())
+            .health(crop.getHealth())
+            .plantingDate(crop.getPlantingDate())
+            .expectedYield(crop.getExpectedYield())
+            .farmId(crop.getFarm().getFarmId())
+            .farmName(crop.getFarm().getFarmName())
+            .build();
+              
     }
 }

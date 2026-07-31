@@ -14,6 +14,10 @@ public class CropResponseDTO {
     private Long cropId;
     private String cropName;
     private String season;
+    private String stage;
+    private String health;
+    private java.time.LocalDate plantingDate;
+    private String expectedYield;
     private Long farmId;
     private String farmName;
 }

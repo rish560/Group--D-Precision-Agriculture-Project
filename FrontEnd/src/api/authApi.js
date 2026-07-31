@@ -1,10 +1,11 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance, { setAuthToken } from './axiosInstance';
 import { mockLogin, mockRegister } from '../services/mockApi';
 
 const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
 
 export const login = async (payloadOrEmail, password) => {
   let emailValue, passwordValue;
+
   if (typeof payloadOrEmail === 'object' && payloadOrEmail !== null) {
     emailValue = payloadOrEmail.email;
     passwordValue = payloadOrEmail.password;
@@ -18,13 +19,28 @@ export const login = async (payloadOrEmail, password) => {
   }
 
   try {
-    const response = await axiosInstance.post('/auth/login', { email: emailValue, password: passwordValue });
+    const response = await axiosInstance.post('/auth/login', {
+      email: emailValue,
+      password: passwordValue,
+    });
+
+    console.log("Login Response:", response.data);
+
+    const token = response.data.token;
+
+    setAuthToken(token);
+
     return {
       success: true,
-      token: response.data.token,
-      user: { email: emailValue, role: response.data.role },
+      token,
+      user: {
+        id: response.data.id,
+        email: response.data.email,
+        role: response.data.role,
+      },
       role: response.data.role,
     };
+
   } catch (error) {
     return {
       success: false,
@@ -33,12 +49,14 @@ export const login = async (payloadOrEmail, password) => {
   }
 };
 
+
 export const register = async (payload) => {
   if (!hasBackend) {
     const mockPayload = {
       ...payload,
       role: payload.role === 'Guest User' ? 'Guest' : payload.role
     };
+
     return mockRegister(mockPayload);
   }
 
@@ -51,7 +69,12 @@ export const register = async (payload) => {
 
   try {
     const response = await axiosInstance.post('/auth/register', apiPayload);
-    return { success: true, ...response.data };
+
+    return {
+      success: true,
+      ...response.data,
+    };
+
   } catch (error) {
     return {
       success: false,

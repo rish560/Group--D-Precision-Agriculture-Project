@@ -17,5 +17,8 @@ public class FarmResponseDTO {
     private String location;
     private BigDecimal area;
     private Long ownerId;
-    private String ownerUsername;
+private String ownerUsername;
+private String currentCrop;
+private String waterSource;
+private String status;
 }

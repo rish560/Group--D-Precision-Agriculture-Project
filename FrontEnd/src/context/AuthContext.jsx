@@ -84,11 +84,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (payload) => {
-    setLoading(true);
-    const response = await apiRegister(payload);
-    setLoading(false);
-    return response;
-  };
+  setLoading(true);
+  // Register.jsx sends friendly labels ("Farm Manager", "Guest User", "Admin"),
+  // backend role-checks expect "FARM_MANAGER", "GUEST", "ADMIN" — normalize here
+  const normalizedRole = (payload.role || '')
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, '_')
+    .replace('GUEST_USER', 'GUEST');
+  const response = await apiRegister({ ...payload, role: normalizedRole });
+  setLoading(false);
+  return response;
+};
 
   const logout = () => {
     setUser(null);

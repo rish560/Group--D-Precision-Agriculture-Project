@@ -43,8 +43,8 @@ public class SecurityConfig {
                         // GUEST, FARM_MANAGER, ADMIN can read farms and crops
                         .requestMatchers(HttpMethod.GET, "/api/farms/**", "/api/crops/**").hasAnyRole("GUEST", "FARM_MANAGER", "ADMIN")
                         // only ADMIN can create/update/delete farms and crops
-                        .requestMatchers(HttpMethod.POST, "/api/farms/**", "/api/crops/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/farms/**", "/api/crops/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/farms/**", "/api/crops/**").hasAnyRole("FARM_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/farms/**", "/api/crops/**").hasAnyRole("FARM_MANAGER", "ADMIN")
                         // only ADMIN can delete
                         .requestMatchers(HttpMethod.DELETE, "/api/farms/**", "/api/crops/**").hasRole("ADMIN")
                         // only ADMIN can access users API

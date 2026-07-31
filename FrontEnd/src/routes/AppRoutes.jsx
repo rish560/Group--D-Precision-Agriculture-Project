@@ -105,7 +105,7 @@ export const AppRoutes = () => {
             path="farm-managers"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
-                <RecordManagement resource="users" canManage roleFilter="Farm Manager" title="Manage farm managers" />
+                <RecordManagement resource="users" canManage roleFilter="FARM_MANAGER" title="Manage farm managers" />
               </ProtectedRoute>
             }
           />

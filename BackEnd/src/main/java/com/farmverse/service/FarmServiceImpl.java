@@ -7,6 +7,7 @@ import com.farmverse.exception.ResourceNotFoundException;
 import com.farmverse.entity.Farm;
 import com.farmverse.entity.User;
 import com.farmverse.repository.FarmRepository;
+import com.farmverse.repository.CropRepository;
 import com.farmverse.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ public class FarmServiceImpl implements FarmService {
 
     private final FarmRepository farmRepository;
     private final UserRepository userRepository;
+    private final CropRepository cropRepository;
 
     @Override
     @Transactional
@@ -30,11 +32,14 @@ public class FarmServiceImpl implements FarmService {
                 .orElseThrow(() -> new ResourceNotFoundException("Owner not found"));
 
         Farm farm = Farm.builder()
-                .farmName(farmRequestDTO.getFarmName())
-                .location(farmRequestDTO.getLocation())
-                .area(farmRequestDTO.getArea())
-                .owner(owner)
-                .build();
+        .farmName(farmRequestDTO.getFarmName())
+        .location(farmRequestDTO.getLocation())
+        .area(farmRequestDTO.getArea())
+        .currentCrop(farmRequestDTO.getCurrentCrop())
+        .waterSource(farmRequestDTO.getWaterSource())
+        .status(farmRequestDTO.getStatus())
+        .owner(owner)
+        .build();
 
         return toResponseDTO(farmRepository.save(farm));
     }
@@ -68,11 +73,14 @@ public class FarmServiceImpl implements FarmService {
 
         User owner = userRepository.findById(farmRequestDTO.getOwnerId())
             .orElseThrow(() -> new ResourceNotFoundException("Owner not found"));
-
-        farm.setFarmName(farmRequestDTO.getFarmName());
-        farm.setLocation(farmRequestDTO.getLocation());
-        farm.setArea(farmRequestDTO.getArea());
-        farm.setOwner(owner);
+        
+            farm.setFarmName(farmRequestDTO.getFarmName());
+farm.setLocation(farmRequestDTO.getLocation());
+farm.setArea(farmRequestDTO.getArea());
+farm.setCurrentCrop(farmRequestDTO.getCurrentCrop());
+farm.setWaterSource(farmRequestDTO.getWaterSource());
+farm.setStatus(farmRequestDTO.getStatus());
+farm.setOwner(owner);
 
         return toResponseDTO(farmRepository.save(farm));
     }
@@ -90,6 +98,7 @@ public class FarmServiceImpl implements FarmService {
             throw new ForbiddenException("You can only delete your own farms");
         }
 
+        cropRepository.deleteAll(farm.getCrops());
         farmRepository.deleteById(id);
     }
 
@@ -101,6 +110,9 @@ public class FarmServiceImpl implements FarmService {
                 .area(farm.getArea())
                 .ownerId(farm.getOwner().getId())
                 .ownerUsername(farm.getOwner().getUsername())
+                .currentCrop(farm.getCurrentCrop())
+                .waterSource(farm.getWaterSource())
+                .status(farm.getStatus())
                 .build();
     }
 }

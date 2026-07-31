@@ -17,9 +17,10 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 
 const roleOptions = [
-  { value: 'Admin', label: 'Admin' },
-  { value: 'Farm Manager', label: 'Farm Manager' },
-  { value: 'Guest User', label: 'Guest User' },
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'FARM_MANAGER', label: 'Farm Manager' },
+  { value: 'FARMER', label: 'Farmer' },
+  { value: 'GUEST', label: 'Guest User' },
 ];
 
 const InputWrapper = ({ icon: Icon, children, error }) => (
