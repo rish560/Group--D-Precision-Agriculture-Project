@@ -1,0 +1,3 @@
+import { Activity, BarChart3, Leaf, MapPin, Wheat } from 'lucide-react';
+import { RoleWorkspace } from '../../components/dashboard/RoleWorkspace';
+export const ManagerDashboard = () => <RoleWorkspace eyebrow="Farm manager workspace" title="Today’s field operations" summary="Coordinate crop production and monitor soil conditions." stats={[{ title: 'Assigned farms', value: '6', icon: MapPin }, { title: 'Crop cycles', value: '14', icon: Wheat }, { title: 'Field efficiency', value: '91%', icon: Activity }]} actions={[{ label: 'Crop Production', to: '/dashboard/production', icon: BarChart3 }, { label: 'Soil Details', to: '/dashboard/soil', icon: Leaf }]} />;
