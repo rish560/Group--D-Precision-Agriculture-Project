@@ -1,4 +1,5 @@
 import axiosInstance from './axiosInstance';
+<<<<<<< HEAD
 import { normalizeRole } from '../config/roleRoutes';
 
 const extractArray = (data) => {
@@ -71,6 +72,49 @@ export const updateUser = async (id, payload) => {
 };
 
 export const deleteUser = async (id) => {
+=======
+import { getUsers as mockGetUsers, createRecord, updateRecord, deleteRecord } from '../services/mockApi';
+
+const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
+
+export const getUsers = async () => {
+  if (!hasBackend) {
+    return mockGetUsers();
+  }
+  const response = await axiosInstance.get('/users');
+  return response.data;
+};
+
+export const getUserById = async (id) => {
+  if (!hasBackend) {
+    const list = await mockGetUsers();
+    return list.find((u) => String(u.id) === String(id));
+  }
+  const response = await axiosInstance.get(`/users/${id}`);
+  return response.data;
+};
+
+export const createUser = async (payload) => {
+  if (!hasBackend) {
+    return createRecord('users', payload);
+  }
+  const response = await axiosInstance.post('/users', payload);
+  return response.data;
+};
+
+export const updateUser = async (id, payload) => {
+  if (!hasBackend) {
+    return updateRecord('users', id, payload);
+  }
+  const response = await axiosInstance.put(`/users/${id}`, payload);
+  return response.data;
+};
+
+export const deleteUser = async (id) => {
+  if (!hasBackend) {
+    return deleteRecord('users', id);
+  }
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
   const response = await axiosInstance.delete(`/users/${id}`);
   return response.data;
 };

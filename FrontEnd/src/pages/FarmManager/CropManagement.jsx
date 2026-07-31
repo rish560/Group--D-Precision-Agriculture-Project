@@ -9,7 +9,11 @@ import { Button } from '../../components/ui/Button';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { normalizeRole } from '../../config/roleRoutes';
+<<<<<<< HEAD
 import { createCrop, deleteCrop, getCrops, updateCrop } from '../../api/cropApi';
+=======
+import { createCrop, deleteCrop, getCrops, updateCrop } from '../../services/mockApi';
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
 const cropSchema = z.object({
   name: z.string().min(2, 'Crop name is required'),
@@ -37,10 +41,17 @@ export const CropManagement = () => {
   const { user } = useAuth();
   const currentRole = normalizeRole(user?.role);
   const isAdmin = currentRole === 'ADMIN';
+<<<<<<< HEAD
   const isManager = currentRole === 'FARM_MANAGER';
   const isGuest = currentRole === 'GUEST' || (!isAdmin && !isManager);
 
   const canAddCrop = isAdmin || isManager;
+=======
+  const isFarmer = currentRole === 'FARMER' || currentRole === 'FARM_MANAGER';
+  const isGuest = currentRole === 'GUEST' || currentRole === 'USER' || (!isAdmin && !isFarmer);
+
+  const canAddCrop = isAdmin || isFarmer;
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
   const isOwnCrop = useCallback(
     (crop) => {
@@ -80,8 +91,13 @@ export const CropManagement = () => {
     [isAdmin, isGuest, user]
   );
 
+<<<<<<< HEAD
   const canEditCrop = (crop) => isAdmin || (isManager && isOwnCrop(crop));
   const canDeleteCrop = (crop) => isAdmin || (isManager && isOwnCrop(crop));
+=======
+  const canEditCrop = (crop) => isAdmin || (isFarmer && isOwnCrop(crop));
+  const canDeleteCrop = (crop) => isAdmin || (isFarmer && isOwnCrop(crop));
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
   const [crops, setCrops] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -240,7 +256,10 @@ export const CropManagement = () => {
           <table className="w-full border-separate border-spacing-0 text-left text-sm">
             <thead>
               <tr className="bg-slate-50 text-slate-500">
+<<<<<<< HEAD
                 <th className="border-b border-slate-200 px-5 py-4">Farmer Name</th>
+=======
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <th className="border-b border-slate-200 px-5 py-4">Crop</th>
                 <th className="border-b border-slate-200 px-5 py-4">Stage</th>
                 <th className="border-b border-slate-200 px-5 py-4">Health</th>
@@ -254,7 +273,10 @@ export const CropManagement = () => {
             <tbody>
               {crops.map((crop) => (
                 <tr key={crop.id} className="border-b border-slate-200 last:border-b-0 hover:bg-slate-50">
+<<<<<<< HEAD
                   <td className="px-5 py-4 text-slate-700 font-medium">{crop.farmerName || crop.farmer || 'Ramesh Kumar'}</td>
+=======
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                   <td className="px-5 py-4">
                     <div className="font-semibold text-slate-900">{crop.name}</div>
                     <div className="text-xs text-slate-500">{crop.diseaseStatus}</div>
@@ -317,6 +339,7 @@ export const CropManagement = () => {
 
             <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
               <label className="space-y-2 text-sm text-slate-700">
+<<<<<<< HEAD
                 <span>Crop Name *</span>
                 <select
                   {...register('name')}
@@ -326,10 +349,15 @@ export const CropManagement = () => {
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
+=======
+                <span>Crop name</span>
+                <input type="text" {...register('name')} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 {errors.name && <span className="text-xs text-rose-600">{errors.name.message}</span>}
               </label>
 
               <label className="space-y-2 text-sm text-slate-700">
+<<<<<<< HEAD
                 <span>Growth Stage *</span>
                 <select
                   {...register('stage')}
@@ -339,10 +367,15 @@ export const CropManagement = () => {
                     <option key={stg} value={stg}>{stg}</option>
                   ))}
                 </select>
+=======
+                <span>Growth stage</span>
+                <input type="text" {...register('stage')} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 {errors.stage && <span className="text-xs text-rose-600">{errors.stage.message}</span>}
               </label>
 
               <label className="space-y-2 text-sm text-slate-700">
+<<<<<<< HEAD
                 <span>Crop Health *</span>
                 <select
                   {...register('health')}
@@ -352,35 +385,61 @@ export const CropManagement = () => {
                     <option key={h} value={h}>{h}</option>
                   ))}
                 </select>
+=======
+                <span>Health status</span>
+                <input type="text" {...register('health')} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 {errors.health && <span className="text-xs text-rose-600">{errors.health.message}</span>}
               </label>
 
               <label className="space-y-2 text-sm text-slate-700">
+<<<<<<< HEAD
                 <span>Planting Date *</span>
+=======
+                <span>Planting date</span>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <input type="date" {...register('plantingDate')} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
                 {errors.plantingDate && <span className="text-xs text-rose-600">{errors.plantingDate.message}</span>}
               </label>
 
               <label className="space-y-2 text-sm text-slate-700">
+<<<<<<< HEAD
                 <span>Harvest Date *</span>
+=======
+                <span>Harvest date</span>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <input type="date" {...register('harvestDate')} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
                 {errors.harvestDate && <span className="text-xs text-rose-600">{errors.harvestDate.message}</span>}
               </label>
 
+<<<<<<< HEAD
               <label className="space-y-2 text-sm text-slate-700">
                 <span>Expected Yield *</span>
                 <input type="text" {...register('expectedYield')} placeholder="e.g. 4.5 tons/acre" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
+=======
+              <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
+                <span>Expected yield</span>
+                <input type="text" {...register('expectedYield')} placeholder="e.g. 15 tons/acre" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 {errors.expectedYield && <span className="text-xs text-rose-600">{errors.expectedYield.message}</span>}
               </label>
 
               <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
+<<<<<<< HEAD
                 <span>Market Price</span>
+=======
+                <span>Market price</span>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <input type="text" {...register('marketPrice')} placeholder="e.g. ₹42/kg" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
                 {errors.marketPrice && <span className="text-xs text-rose-600">{errors.marketPrice.message}</span>}
               </label>
 
               <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
+<<<<<<< HEAD
                 <span>Disease Status</span>
+=======
+                <span>Disease status</span>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <input type="text" {...register('diseaseStatus')} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100" />
                 {errors.diseaseStatus && <span className="text-xs text-rose-600">{errors.diseaseStatus.message}</span>}
               </label>

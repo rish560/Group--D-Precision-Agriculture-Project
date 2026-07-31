@@ -14,6 +14,7 @@ public class FarmResponseDTO {
 
     private Long farmId;
     private String farmName;
+<<<<<<< HEAD
     private String farmerName;
     private String location;
     private BigDecimal area;
@@ -22,4 +23,13 @@ public class FarmResponseDTO {
     private String status;
     private Long ownerId;
     private String ownerUsername;
+=======
+    private String location;
+    private BigDecimal area;
+    private Long ownerId;
+private String ownerUsername;
+private String currentCrop;
+private String waterSource;
+private String status;
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 }

@@ -14,6 +14,7 @@ import { AboutPage } from '../pages/About';
 import { HelpPage } from '../pages/Help';
 import { ProtectedRoute } from '../components/layout/ProtectedRoute';
 import { roleHomeRoute } from '../config/roleRoutes';
+<<<<<<< HEAD
 import { NotificationsPage } from '../pages/DashboardPages';
 import { FarmerSoilPage } from '../pages/Farmer/RolePages';
 import { RecordManagement } from '../pages/RecordManagement';
@@ -22,6 +23,12 @@ import { RecordManagement } from '../pages/RecordManagement';
 const ALL_ROLES  = ['GUEST', 'USER', 'ADMIN', 'FARM_MANAGER'];
 const MGMT_ROLES = ['ADMIN', 'FARM_MANAGER'];
 
+=======
+import { FarmMapPage, NotificationsPage } from '../pages/DashboardPages';
+import { FarmerSoilPage, FarmerWeatherPage } from '../pages/Farmer/RolePages';
+import { RecordManagement } from '../pages/RecordManagement';
+
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 const RoleRedirect = () => {
   const { role } = useAuth();
   return <Navigate to={roleHomeRoute(role)} replace />;
@@ -43,13 +50,18 @@ export const AppRoutes = () => {
         <Route
           path="/dashboard"
           element={
+<<<<<<< HEAD
             <ProtectedRoute allowedRoles={ALL_ROLES}>
+=======
+            <ProtectedRoute allowedRoles={['FARMER', 'GUEST', 'FARM_MANAGER', 'ADMIN']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
               <DashboardLayout />
             </ProtectedRoute>
           }
         >
           {/* Index: role-based landing */}
           <Route index element={<RoleDashboard />} />
+<<<<<<< HEAD
           <Route path="manager" element={<RoleRedirect />} />
           <Route path="admin"   element={<RoleRedirect />} />
 
@@ -58,6 +70,17 @@ export const AppRoutes = () => {
             path="add-farm"
             element={
               <ProtectedRoute allowedRoles={MGMT_ROLES}>
+=======
+          <Route path="farmer"  element={<RoleRedirect />} />
+          <Route path="manager" element={<RoleRedirect />} />
+          <Route path="admin"   element={<RoleRedirect />} />
+
+          {/* ── Admin / Farmer Creator ── */}
+          <Route
+            path="add-farm"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'FARMER', 'FARM_MANAGER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <RecordManagement resource="farms" canManage title="Add and manage farms" />
               </ProtectedRoute>
             }
@@ -65,7 +88,11 @@ export const AppRoutes = () => {
           <Route
             path="add-crop"
             element={
+<<<<<<< HEAD
               <ProtectedRoute allowedRoles={MGMT_ROLES}>
+=======
+              <ProtectedRoute allowedRoles={['ADMIN', 'FARMER', 'FARM_MANAGER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <RecordManagement resource="crops" canManage title="Add and manage crops" />
               </ProtectedRoute>
             }
@@ -73,7 +100,11 @@ export const AppRoutes = () => {
           <Route
             path="my-farms"
             element={
+<<<<<<< HEAD
               <ProtectedRoute allowedRoles={['FARM_MANAGER']}>
+=======
+              <ProtectedRoute allowedRoles={['FARM_MANAGER', 'FARMER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <RecordManagement resource="farms" canManage title="My farms" />
               </ProtectedRoute>
             }
@@ -81,7 +112,11 @@ export const AppRoutes = () => {
           <Route
             path="production"
             element={
+<<<<<<< HEAD
               <ProtectedRoute allowedRoles={['FARM_MANAGER']}>
+=======
+              <ProtectedRoute allowedRoles={['FARM_MANAGER', 'FARMER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <RecordManagement resource="crops" canManage title="Crop production" />
               </ProtectedRoute>
             }
@@ -96,12 +131,27 @@ export const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
+<<<<<<< HEAD
           {/* /farmers route removed — FARMER role no longer exists */}
+=======
+          <Route
+            path="farmers"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <RecordManagement resource="users" canManage roleFilter="Farmer" title="View farmers" />
+              </ProtectedRoute>
+            }
+          />
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
           <Route
             path="farm-managers"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
+<<<<<<< HEAD
                 <RecordManagement resource="users" canManage roleFilter="FARM_MANAGER" title="View farm managers" />
+=======
+                <RecordManagement resource="users" canManage roleFilter="FARM_MANAGER" title="Manage farm managers" />
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
               </ProtectedRoute>
             }
           />
@@ -109,16 +159,28 @@ export const AppRoutes = () => {
             path="guests"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
+<<<<<<< HEAD
                 <RecordManagement resource="users" canManage roleFilter="GUEST" title="View guests" />
+=======
+                <RecordManagement resource="users" canManage roleFilter="Guest" title="View guests" />
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
               </ProtectedRoute>
             }
           />
 
+<<<<<<< HEAD
           {/* ── All roles – farms & crops ── */}
           <Route
             path="farms"
             element={
               <ProtectedRoute allowedRoles={ALL_ROLES}>
+=======
+          {/* ── Admin / Farmer / Guest – farms & crops ── */}
+          <Route
+            path="farms"
+            element={
+              <ProtectedRoute allowedRoles={['GUEST', 'USER', 'ADMIN', 'FARMER', 'FARM_MANAGER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <RecordManagement resource="farms" canManage title="Manage farms" />
               </ProtectedRoute>
             }
@@ -126,17 +188,29 @@ export const AppRoutes = () => {
           <Route
             path="crops"
             element={
+<<<<<<< HEAD
               <ProtectedRoute allowedRoles={ALL_ROLES}>
+=======
+              <ProtectedRoute allowedRoles={['GUEST', 'USER', 'ADMIN', 'FARMER', 'FARM_MANAGER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <RecordManagement resource="crops" canManage title="Manage crops" />
               </ProtectedRoute>
             }
           />
 
+<<<<<<< HEAD
           {/* ── Insights ── */}
           <Route
             path="soil"
             element={
               <ProtectedRoute allowedRoles={ALL_ROLES}>
+=======
+          {/* ── Shared: Insights ── */}
+          <Route
+            path="soil"
+            element={
+              <ProtectedRoute allowedRoles={['GUEST', 'USER', 'ADMIN', 'FARM_MANAGER', 'FARMER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <FarmerSoilPage />
               </ProtectedRoute>
             }
@@ -146,7 +220,11 @@ export const AppRoutes = () => {
           <Route
             path="reports"
             element={
+<<<<<<< HEAD
               <ProtectedRoute allowedRoles={MGMT_ROLES}>
+=======
+              <ProtectedRoute allowedRoles={['ADMIN', 'FARM_MANAGER', 'FARMER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <ReportsPage />
               </ProtectedRoute>
             }
@@ -156,7 +234,11 @@ export const AppRoutes = () => {
           <Route
             path="notifications"
             element={
+<<<<<<< HEAD
               <ProtectedRoute allowedRoles={MGMT_ROLES}>
+=======
+              <ProtectedRoute allowedRoles={['ADMIN', 'FARM_MANAGER', 'FARMER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <NotificationsPage />
               </ProtectedRoute>
             }
@@ -164,7 +246,11 @@ export const AppRoutes = () => {
           <Route
             path="settings"
             element={
+<<<<<<< HEAD
               <ProtectedRoute allowedRoles={MGMT_ROLES}>
+=======
+              <ProtectedRoute allowedRoles={['ADMIN', 'FARM_MANAGER', 'FARMER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <SettingsPage />
               </ProtectedRoute>
             }
@@ -177,7 +263,11 @@ export const AppRoutes = () => {
           <Route
             path="about"
             element={
+<<<<<<< HEAD
               <ProtectedRoute allowedRoles={ALL_ROLES}>
+=======
+              <ProtectedRoute allowedRoles={['GUEST', 'USER', 'ADMIN', 'FARMER', 'FARM_MANAGER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <AboutPage />
               </ProtectedRoute>
             }
@@ -185,7 +275,11 @@ export const AppRoutes = () => {
           <Route
             path="help"
             element={
+<<<<<<< HEAD
               <ProtectedRoute allowedRoles={ALL_ROLES}>
+=======
+              <ProtectedRoute allowedRoles={['GUEST', 'USER', 'ADMIN', 'FARMER', 'FARM_MANAGER']}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 <HelpPage />
               </ProtectedRoute>
             }

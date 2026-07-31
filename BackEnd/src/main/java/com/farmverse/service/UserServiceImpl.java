@@ -2,17 +2,26 @@ package com.farmverse.service;
 
 import com.farmverse.dto.UserRequestDTO;
 import com.farmverse.dto.UserResponseDTO;
+<<<<<<< HEAD
 import com.farmverse.entity.Role;
 import com.farmverse.entity.User;
 import com.farmverse.exception.BadRequestException;
 import com.farmverse.exception.ForbiddenException;
 import com.farmverse.exception.ResourceNotFoundException;
+=======
+import com.farmverse.exception.ForbiddenException;
+import com.farmverse.exception.ResourceNotFoundException;
+import com.farmverse.entity.User;
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 import com.farmverse.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
+<<<<<<< HEAD
 import org.springframework.security.crypto.password.PasswordEncoder;
+=======
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +31,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+<<<<<<< HEAD
     private final PasswordEncoder passwordEncoder;
+=======
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
     @Override
     @Transactional
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
+<<<<<<< HEAD
         String rawRole = userRequestDTO.getRole();
         if (!Role.isValid(rawRole)) {
             throw new BadRequestException("Invalid role. Allowed roles: ADMIN, FARM_MANAGER, GUEST");
@@ -52,6 +65,13 @@ public class UserServiceImpl implements UserService {
                 .phoneNumber(phone)
                 .password(passwordEncoder.encode(userRequestDTO.getPassword()))
                 .role(normalizedRole)
+=======
+        User user = User.builder()
+                .username(userRequestDTO.getUsername())
+                .email(userRequestDTO.getEmail())
+                .password(userRequestDTO.getPassword())
+                .role(userRequestDTO.getRole())
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 .build();
 
         return toResponseDTO(userRepository.save(user));
@@ -85,6 +105,7 @@ public class UserServiceImpl implements UserService {
             throw new ForbiddenException("You can only update your own profile");
         }
 
+<<<<<<< HEAD
         String rawRole = userRequestDTO.getRole();
         if (rawRole != null) {
             if (!Role.isValid(rawRole)) {
@@ -109,6 +130,12 @@ public class UserServiceImpl implements UserService {
         if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         }
+=======
+        user.setUsername(userRequestDTO.getUsername());
+        user.setEmail(userRequestDTO.getEmail());
+        user.setPassword(userRequestDTO.getPassword());
+        user.setRole(userRequestDTO.getRole());
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
         return toResponseDTO(userRepository.save(user));
     }
@@ -125,10 +152,15 @@ public class UserServiceImpl implements UserService {
     private UserResponseDTO toResponseDTO(User user) {
         return UserResponseDTO.builder()
                 .id(user.getId())
+<<<<<<< HEAD
                 .fullName(user.getFullName() != null ? user.getFullName() : user.getUsername())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
+=======
+                .username(user.getUsername())
+                .email(user.getEmail())
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                 .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .build();

@@ -30,12 +30,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+<<<<<<< HEAD
     @Column(name = "full_name", length = 150)
     private String fullName;
 
     @Column(name = "phone_number", length = 50)
     private String phoneNumber;
 
+=======
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     @Column(nullable = false, unique = true, length = 100)
     private String username;
 
@@ -60,6 +63,7 @@ public class User {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
+<<<<<<< HEAD
         if (username == null || username.trim().isEmpty()) {
             if (fullName != null && !fullName.trim().isEmpty()) {
                 username = fullName.trim();
@@ -70,5 +74,7 @@ public class User {
         if (fullName == null || fullName.trim().isEmpty()) {
             fullName = username;
         }
+=======
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     }
 }

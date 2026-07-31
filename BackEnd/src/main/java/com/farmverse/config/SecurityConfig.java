@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+<<<<<<< HEAD
                         .requestMatchers("/api/auth/**").permitAll()
                         // GUEST, FARM_MANAGER, ADMIN can read farms and crops
                         .requestMatchers(HttpMethod.GET, "/api/farms/**", "/api/crops/**").hasAnyRole("GUEST", "FARM_MANAGER", "ADMIN")
@@ -46,6 +47,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/farms/**", "/api/crops/**").hasAnyRole("FARM_MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/farms/**", "/api/crops/**").hasAnyRole("FARM_MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/farms/**", "/api/crops/**").hasAnyRole("FARM_MANAGER", "ADMIN")
+=======
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        // GUEST, FARM_MANAGER, ADMIN can read farms and crops
+                        .requestMatchers(HttpMethod.GET, "/api/farms/**", "/api/crops/**").hasAnyRole("GUEST", "FARM_MANAGER", "ADMIN")
+                        // only ADMIN can create/update/delete farms and crops
+                        .requestMatchers(HttpMethod.POST, "/api/farms/**", "/api/crops/**").hasAnyRole("FARM_MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/farms/**", "/api/crops/**").hasAnyRole("FARM_MANAGER", "ADMIN")
+                        // only ADMIN can delete
+                        .requestMatchers(HttpMethod.DELETE, "/api/farms/**", "/api/crops/**").hasRole("ADMIN")
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                         // only ADMIN can access users API
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
@@ -59,9 +70,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+<<<<<<< HEAD
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:*", 
                 "http://127.0.0.1:*"
+=======
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:5173", 
+                "http://localhost:5174",
+                "http://localhost:3000", 
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:5174"
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Requested-With"));

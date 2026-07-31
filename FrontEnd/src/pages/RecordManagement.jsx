@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { ArrowLeft, Eye, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+=======
+import { ArrowLeft, Eye, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -8,7 +12,11 @@ import { normalizeRole } from '../config/roleRoutes';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
+<<<<<<< HEAD
 // Import custom API modules
+=======
+// Import from custom API modules
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 import { getUsers, createUser, updateUser, deleteUser } from '../api/userApi';
 import { getFarms, createFarm, updateFarm, deleteFarm } from '../api/farmApi';
 import { getCrops, createCrop, updateCrop, deleteCrop } from '../api/cropApi';
@@ -21,28 +29,47 @@ const apis = {
 
 const tableColumns = {
   farms: [
+<<<<<<< HEAD
     ['farmerName', 'Farmer Name'],
     ['location', 'Location'],
     ['area', 'Area'],
+=======
+    ['name', 'Farm Name'],
+    ['location', 'Location'],
+    ['area', 'Area'],
+    ['currentCrop', 'Crop'],
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     ['waterSource', 'Water Source'],
     ['status', 'Status']
   ],
   crops: [
+<<<<<<< HEAD
     ['farmerName', 'Farmer Name'],
     ['name', 'Crop'],
+=======
+    ['name', 'Crop Name'],
+    ['farm', 'Farm'],
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     ['stage', 'Growth Stage'],
     ['health', 'Crop Health'],
     ['expectedYield', 'Expected Yield']
   ],
   users: [
+<<<<<<< HEAD
     ['fullName', 'Full Name'],
     ['email', 'Email'],
     ['role', 'Role'],
     ['phoneNumber', 'Phone Number']  // ← was 'phone'; backend DTO field is 'phoneNumber'
+=======
+    ['username', 'Username'],
+    ['email', 'Email'],
+    ['role', 'Role']
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
   ]
 };
 
 const filtersList = {
+<<<<<<< HEAD
   farms: ['Healthy', 'Needs Attention', 'Under Maintenance', 'Inactive'],
   crops: ['Excellent', 'Good', 'Average', 'Poor', 'Diseased'],
   users: ['Admin', 'Farm Manager', 'Guest']
@@ -60,6 +87,38 @@ export const FARM_STATUSES = ['Healthy', 'Needs Attention', 'Under Maintenance',
 export const GROWTH_STAGES = ['Seeding', 'Vegetative', 'Flowering', 'Fruiting', 'Harvest Ready', 'Maturity'];
 export const CROP_HEALTHS = ['Excellent', 'Good', 'Average', 'Poor', 'Diseased'];
 export const YIELD_UNITS = ['tons/acre', 'tons/hectare', 'kg/acre', 'quintals/acre'];
+=======
+  farms: ['Healthy', 'Monitoring', 'Optimized'],
+  crops: ['Excellent', 'Stable', 'Watch', 'Critical'],
+  users: ['ADMIN', 'FARM_MANAGER', 'GUEST']
+};
+
+const farmFields = [
+  { name: 'name', label: 'Farm Name', type: 'text', required: true },
+  { name: 'location', label: 'Location', type: 'text', required: true },
+  { name: 'currentCrop', label: 'Crop / Current Crop', type: 'text', required: true },
+  { name: 'area', label: 'Area (e.g. 48 acres)', type: 'text', required: true },
+  { name: 'waterSource', label: 'Water Source', type: 'text', required: true },
+  { name: 'status', label: 'Status', type: 'select', options: ['Healthy', 'Monitoring', 'Optimized'], defaultValue: 'Healthy' }
+];
+
+const cropFields = [
+  { name: 'name', label: 'Crop Name', type: 'text', required: true },
+  { name: 'farm', label: 'Assigned Farm', type: 'select', options: [], required: true },
+  { name: 'stage', label: 'Growth Stage', type: 'select', options: ['Seeding', 'Vegetative', 'Flowering', 'Maturity', 'Harvested'], defaultValue: 'Vegetative', required: true },
+ { name: 'health', label: 'Crop Health', type: 'select', options: ['Excellent', 'Stable', 'Watch', 'Critical'], defaultValue: 'Excellent', required: true },
+  { name: 'plantingDate', label: 'Planting Date', type: 'date', required: true },
+  { name: 'expectedYield', label: 'Expected Yield', type: 'text', required: true },
+  { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Archived', 'Harvested'], defaultValue: 'Active' }
+];
+
+const userFields = [
+  { name: 'username', label: 'Username', type: 'text', required: true },
+  { name: 'email', label: 'Email', type: 'text', required: true },
+  { name: 'password', label: 'Password', type: 'password', required: true },
+  { name: 'role', label: 'Role', type: 'select', options: ['ADMIN', 'FARM_MANAGER', 'FARMER', 'GUEST'], required: true },
+];
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
 export const RecordManagement = ({ resource, canManage = false, roleFilter, title }) => {
   const apiSetup = apis[resource];
@@ -74,9 +133,16 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
 
   const currentRole = normalizeRole(user?.role);
   const isAdmin = currentRole === 'ADMIN';
+<<<<<<< HEAD
   const isManager = currentRole === 'FARM_MANAGER';
   const isGuest = currentRole === 'GUEST' || (!isAdmin && !isManager);
 
+=======
+  const isFarmer = currentRole === 'FARMER' || currentRole === 'FARM_MANAGER';
+  const isGuest = currentRole === 'GUEST' || currentRole === 'USER' || (!isAdmin && !isFarmer);
+
+  // ── State declarations (ALL useState calls must come before any useCallback/useMemo that reference them) ──
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -84,12 +150,19 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
   const [page, setPage] = useState(1);
   const [mode, setMode] = useState(isAddRoute ? 'create' : null);
   const [saving, setSaving] = useState(false);
+<<<<<<< HEAD
   const [farmsList, setFarmsList] = useState([]);
 
   const defaultFarmerName = useMemo(() => {
     return user?.fullName || user?.username || 'Ramesh Kumar';
   }, [user]);
 
+=======
+  // farmsList MUST be declared before isOwnRecord uses it in its body and dependency array
+  const [farmsList, setFarmsList] = useState([]);
+
+  // ── Ownership check (uses farmsList, so declared AFTER farmsList state) ──
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
   const isOwnRecord = useCallback(
     (item) => {
       if (!item || !user) return false;
@@ -124,11 +197,19 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         }
       }
 
+<<<<<<< HEAD
+=======
+      // Safe: farmsList is guaranteed to be an array (initialized as [])
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
       if (resource === 'crops' && item.farm && Array.isArray(farmsList)) {
         const cropFarmName = String(item.farm).toLowerCase().trim();
         const belongsToOwnedFarm = farmsList.some((farm) => {
           const farmName = String(farm.name || farm.farmName || '').toLowerCase().trim();
+<<<<<<< HEAD
           const farmOwner = String(farm.owner || farm.manager || farm.farmerName || '').toLowerCase().trim();
+=======
+          const farmOwner = String(farm.owner || farm.manager || '').toLowerCase().trim();
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
           return (
             farmName === cropFarmName &&
             ((userIdStr && farmOwner.includes(userIdStr)) ||
@@ -144,19 +225,30 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     [isAdmin, isGuest, user, resource, farmsList]
   );
 
+<<<<<<< HEAD
   const canAdd = resource === 'users' ? isAdmin : (isAdmin || isManager);
+=======
+  const canAdd = resource === 'users' ? isAdmin : (isAdmin || isFarmer);
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
   const canEdit = useCallback(
     (item) => {
       if (resource === 'users') return isAdmin;
+<<<<<<< HEAD
       return isAdmin || (isManager && isOwnRecord(item));
     },
     [isAdmin, isManager, resource, isOwnRecord]
+=======
+      return isAdmin || (isFarmer && isOwnRecord(item));
+    },
+    [isAdmin, isFarmer, resource, isOwnRecord]
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
   );
 
   const canDelete = useCallback(
     (item) => {
       if (resource === 'users') return isAdmin;
+<<<<<<< HEAD
       return isAdmin || (isManager && isOwnRecord(item));
     },
     [isAdmin, isManager, resource, isOwnRecord]
@@ -278,6 +370,55 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     }
     setMode('edit');
   };
+=======
+      return isAdmin || (isFarmer && isOwnRecord(item));
+    },
+    [isAdmin, isFarmer, resource, isOwnRecord]
+  );
+
+  // ── Effects ──
+ useEffect(() => {
+  setMode(isAddRoute ? 'create' : null);
+}, [isAddRoute]);
+
+  useEffect(() => {
+    if (resource === 'crops') {
+      getFarms().then(setFarmsList).catch(() => {});
+    }
+  }, [resource]);
+
+  // ── Fields config (depends on farmsList) ──
+  const fieldsConfig = useMemo(() => {
+    if (resource === 'farms') return farmFields;
+    if (resource === 'users') return userFields;
+    if (resource === 'crops') {
+      return cropFields.map((f) => {
+        if (f.name === 'farm') {
+          return { ...f, options: (farmsList || []).map((farm) => farm.name) };
+        }
+        return f;
+      });
+    }
+    return [];
+  }, [resource, farmsList]);
+
+  const blankRecord = useCallback(() => {
+    const obj = {};
+    (fieldsConfig || []).forEach((f) => {
+      obj[f.name] = f.defaultValue || '';
+    });
+    return obj;
+  }, [fieldsConfig]);
+
+  // record state: initialized safely — blankRecord() is callable immediately since fieldsConfig defaults to []
+  const [record, setRecord] = useState(() => (isAddRoute ? blankRecord() : {}));
+
+  useEffect(() => {
+    if (isAddRoute) {
+      setRecord(blankRecord());
+    }
+  }, [isAddRoute, blankRecord]);
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
   const loadRecords = useCallback(async () => {
     setLoading(true);
@@ -295,20 +436,30 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     loadRecords();
   }, [loadRecords]);
 
+<<<<<<< HEAD
   useEffect(() => {
     setPage(1);
   }, [resource, roleFilter, filter, search]);
 
+=======
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
   const visibleRecords = useMemo(() => {
     if (!records) return [];
     let list = records;
     if (roleFilter) {
+<<<<<<< HEAD
       const normTargetRole = normalizeRole(roleFilter);
       list = list.filter((r) => normalizeRole(r.role) === normTargetRole || r.role === roleFilter);
     }
     if (filter !== 'All') {
       const normFilter = normalizeRole(filter);
       list = list.filter((r) => r.status === filter || r.health === filter || normalizeRole(r.role) === normFilter || r.role === filter);
+=======
+      list = list.filter((r) => String(r.role).toLowerCase() === roleFilter.toLowerCase());
+    }
+    if (filter !== 'All') {
+      list = list.filter((r) => r.status === filter || r.health === filter || r.role === filter);
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     }
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -321,6 +472,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
 
   const PAGE_SIZE = 6;
   const pages = Math.max(1, Math.ceil(visibleRecords.length / PAGE_SIZE));
+<<<<<<< HEAD
 
   useEffect(() => {
     if (page > pages) {
@@ -328,6 +480,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     }
   }, [page, pages]);
 
+=======
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
   const rows = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
     return visibleRecords.slice(start, start + PAGE_SIZE);
@@ -337,6 +491,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     e.preventDefault();
     setSaving(true);
     try {
+<<<<<<< HEAD
       const savePayload = { ...record };
 
       if (resource === 'farms') {
@@ -433,6 +588,22 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         await apiSetup.create(savePayload);
       } else {
         await apiSetup.update(record.id || record.farmId || record.cropId, savePayload);
+=======
+      if (mode === 'create') {
+        const savePayload = { ...record };
+        if (user) {
+          if (!savePayload.createdBy) savePayload.createdBy = user.id || user.email || user.fullName;
+          if (!savePayload.userId) savePayload.userId = user.id;
+          if (!savePayload.owner && isFarmer) savePayload.owner = user.fullName;
+          if (!savePayload.manager && isFarmer) savePayload.manager = user.fullName;
+          if (resource === 'farms' && !savePayload.ownerId) savePayload.ownerId = user.id;
+        }
+        console.log("User:", user);
+        console.log("Save Payload:", savePayload);
+        await apiSetup.create(savePayload);
+      } else {
+        await apiSetup.update(record.id, record);
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
       }
       addToast(`${resource.slice(0, -1)} ${mode === 'create' ? 'created' : 'updated'} successfully.`, 'success');
       setMode(null);
@@ -447,7 +618,11 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
   const handleRemove = async () => {
     setSaving(true);
     try {
+<<<<<<< HEAD
       await apiSetup.delete(record.id || record.farmId || record.cropId);
+=======
+      await apiSetup.delete(record.id);
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
       addToast(`${resource.slice(0, -1)} deleted successfully.`, 'success');
       setMode(null);
       await loadRecords();
@@ -460,6 +635,10 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
 
   if (loading) return <LoadingState label={`Loading ${title || `${resource} records`}...`} />;
 
+<<<<<<< HEAD
+=======
+  // Dedicated Page view for Add/Edit/View Form instead of popup modal
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
   if (mode) {
     return (
       <div className="space-y-6">
@@ -477,7 +656,11 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                 {mode === 'delete' ? 'Confirm deletion' : `${mode} ${resource.slice(0, -1)}`}
               </p>
               <h2 className="text-xl font-bold text-gray-900">
+<<<<<<< HEAD
                 {mode === 'create' ? `Add ${resource.slice(0, -1)}` : (record.farmerName || record.name || record.fullName || 'Record Details')}
+=======
+                {mode === 'create' ? `Add ${resource.slice(0, -1)}` : (record.name || record.fullName || 'Record Details')}
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
               </h2>
             </div>
           </div>
@@ -499,6 +682,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
           ) : mode === 'view' ? (
             <div className="space-y-6">
               <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+<<<<<<< HEAD
                 {resource === 'farms' ? (
                   <>
                     <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
@@ -561,6 +745,16 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                     </div>
                   </>
                 )}
+=======
+                {fieldsConfig.map((f) => (
+                  <div key={f.name} className={`rounded-lg border border-gray-100 bg-gray-50 p-3.5 ${f.colSpan === 2 ? 'sm:col-span-2' : ''}`}>
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-gray-400">{f.label}</dt>
+                    <dd className="mt-1 font-medium text-gray-900 break-words whitespace-pre-line text-sm">
+                      {record[f.name] || '—'}
+                    </dd>
+                  </div>
+                ))}
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
               </dl>
               <div className="flex justify-end border-t border-gray-100 pt-4">
                 <Button variant="secondary" onClick={() => setMode(null)}>Back to list</Button>
@@ -568,6 +762,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
             </div>
           ) : (
             <form onSubmit={handleSave} className="space-y-6">
+<<<<<<< HEAD
               {resource === 'farms' && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
@@ -822,6 +1017,60 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                 </div>
               )}
 
+=======
+              <div className="grid gap-4 sm:grid-cols-2">
+                {fieldsConfig.map((f) => {
+                  const isColSpan2 = f.colSpan === 2;
+                  const isLockedForManager = isFarmer && (f.name === 'manager' || f.name === 'owner');
+                  return (
+                    <div key={f.name} className={isColSpan2 ? 'sm:col-span-2' : ''}>
+                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                        {f.label} {f.required && <span className="text-red-500">*</span>}
+                        {isLockedForManager && (
+                          <span className="ml-2 text-xs font-normal text-gray-400">(auto-assigned)</span>
+                        )}
+                      </label>
+                      {f.type === 'textarea' ? (
+                        <textarea
+                          required={f.required}
+                          value={record[f.name] || ''}
+                          onChange={(e) => setRecord((cur) => ({ ...cur, [f.name]: e.target.value }))}
+                          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white min-h-24"
+                          placeholder={`Enter ${f.label.toLowerCase()}`}
+                        />
+                      ) : f.type === 'select' ? (
+                        <select
+                          required={f.required}
+                          value={record[f.name] || ''}
+                          onChange={(e) => setRecord((cur) => ({ ...cur, [f.name]: e.target.value }))}
+                          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
+                        >
+                          <option value="">Select {f.label}</option>
+                          {f.options.map((opt) => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={f.type}
+                          required={f.required}
+                          autoComplete="off"
+                          value={isLockedForManager ? (user?.fullName || '') : (record[f.name] || '')}
+                          readOnly={isLockedForManager}
+                          onChange={(e) => !isLockedForManager && setRecord((cur) => ({ ...cur, [f.name]: e.target.value }))}
+                          className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 outline-none transition ${
+                            isLockedForManager
+                              ? 'border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'border-gray-200 bg-gray-50 focus:border-green-500 focus:bg-white'
+                          }`}
+                          placeholder={isLockedForManager ? user?.fullName : `Enter ${f.label.toLowerCase()}`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
               <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
                 <Button variant="secondary" type="button" onClick={() => setMode(null)}>
                   Cancel
@@ -847,7 +1096,11 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
             <p className="mt-1 text-sm text-gray-500">Search, filter, view, and manage records securely.</p>
           </div>
           {canAdd && (
+<<<<<<< HEAD
             <Button onClick={openCreateModal}>
+=======
+            <Button onClick={() => { setRecord(blankRecord()); setMode('create'); }}>
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
               <Plus className="mr-2 h-4 w-4" />Add {resource.slice(0, -1)}
             </Button>
           )}
@@ -878,6 +1131,10 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
       </Card>
 
       <Card className="p-0 overflow-hidden">
+<<<<<<< HEAD
+=======
+        {/* Desktop / tablet: table (hidden on small screens) */}
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
         <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-[760px] w-full text-left text-sm">
             <thead className="bg-gray-50 text-gray-500">
@@ -890,14 +1147,22 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
             </thead>
             <tbody>
               {rows.map((item) => (
+<<<<<<< HEAD
                 <tr key={item.id || item.farmId || item.cropId} className="hover:bg-gray-50 transition-colors">
+=======
+                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                   {columns.map(([key]) => (
                     <td key={key} className="border-b border-gray-100 px-5 py-3.5 max-w-[220px] truncate" title={String(item[key] || '')}>
                       {key === 'status' || key === 'health' ? (
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           ['Healthy', 'Excellent', 'Active'].includes(item[key]) 
                             ? 'bg-green-50 text-green-700' 
+<<<<<<< HEAD
                             : ['Needs Attention', 'Good', 'Average', 'Stable'].includes(item[key]) 
+=======
+                            : ['Monitoring', 'Stable'].includes(item[key]) 
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                             ? 'bg-amber-50 text-amber-700' 
                             : 'bg-red-50 text-red-700'
                         }`}>
@@ -922,7 +1187,11 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                         <button
                           type="button"
                           aria-label={`Edit ${resource.slice(0, -1)}`}
+<<<<<<< HEAD
                           onClick={() => openEditModal(item)}
+=======
+                          onClick={() => { setRecord(item); setMode('edit'); }}
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                           className="rounded-lg border border-green-200 p-1.5 text-green-700 hover:bg-green-50 transition"
                           title="Edit record"
                         >
@@ -955,9 +1224,16 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
           </table>
         </div>
 
+<<<<<<< HEAD
         <div className="sm:hidden divide-y divide-gray-100">
           {rows.map((item) => (
             <div key={item.id || item.farmId || item.cropId} className="p-4 space-y-2.5">
+=======
+        {/* Mobile: stacked cards (shown only on small screens) */}
+        <div className="sm:hidden divide-y divide-gray-100">
+          {rows.map((item) => (
+            <div key={item.id} className="p-4 space-y-2.5">
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
               <div className="flex items-start justify-between gap-3">
                 <p className="font-semibold text-gray-900 break-words">
                   {item[columns[0][0]] || '—'}
@@ -975,7 +1251,11 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                     <button
                       type="button"
                       aria-label={`Edit ${resource.slice(0, -1)}`}
+<<<<<<< HEAD
                       onClick={() => openEditModal(item)}
+=======
+                      onClick={() => { setRecord(item); setMode('edit'); }}
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                       className="rounded-lg border border-green-200 p-1.5 text-green-700 hover:bg-green-50 transition"
                     >
                       <Pencil className="h-4 w-4" />
@@ -1002,7 +1282,11 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                         <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
                           ['Healthy', 'Excellent', 'Active'].includes(item[key])
                             ? 'bg-green-50 text-green-700'
+<<<<<<< HEAD
                             : ['Needs Attention', 'Good', 'Average', 'Stable'].includes(item[key])
+=======
+                            : ['Monitoring', 'Stable'].includes(item[key])
+>>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
                             ? 'bg-amber-50 text-amber-700'
                             : 'bg-red-50 text-red-700'
                         }`}>
