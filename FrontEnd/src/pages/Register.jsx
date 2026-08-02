@@ -16,10 +16,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 
-<<<<<<< HEAD
 // Supported roles: ADMIN, FARM_MANAGER, GUEST (FARMER removed)
-=======
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 const roleOptions = [
   { value: 'ADMIN', label: 'Admin' },
   { value: 'FARM_MANAGER', label: 'Farm Manager' },
@@ -68,7 +65,6 @@ export const Register = () => {
   const strength = getPasswordStrength(password);
 
   const onSubmit = async (values) => {
-<<<<<<< HEAD
     console.log('=== REGISTRATION DEBUG: Submitting Form Values ===', values);
     try {
       const response = await registerUser(values);
@@ -89,14 +85,6 @@ export const Register = () => {
     } catch (err) {
       console.error('=== REGISTRATION ERROR ===', err);
       setStatus(err?.message || 'Registration failed');
-=======
-    const response = await registerUser(values);
-    if (response.success) {
-      setStatus('Registration successful. Redirecting to login...');
-      setTimeout(() => navigate('/login'), 600);
-    } else {
-      setStatus(response.message);
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     }
   };
 

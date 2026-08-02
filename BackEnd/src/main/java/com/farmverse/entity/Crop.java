@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,7 +32,6 @@ public class Crop {
 
     @Column(name = "crop_name", nullable = false, length = 150)
     private String cropName;
-<<<<<<< HEAD
 
     @Column(nullable = false, length = 100)
     private String season;
@@ -45,28 +45,13 @@ public class Crop {
     @Column(name = "expected_yield", length = 100)
     private String expectedYield;
 
+    @Column(name = "planting_date")
+    private LocalDate plantingDate;
+
+    @Column(length = 50)
+    private String status;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_id", nullable = false)
     private Farm farm;
-=======
- 
-    @Column(nullable = false, length = 100)
-private String season;
-
-@Column(name = "stage", length = 100)
-private String stage;
-
-@Column(name = "health", length = 100)
-private String health;
-
-@Column(name = "planting_date")
-private java.time.LocalDate plantingDate;
-
-@Column(name = "expected_yield", length = 150)
-private String expectedYield;
-
-@ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "farm_id", nullable = false)
-private Farm farm;
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 }

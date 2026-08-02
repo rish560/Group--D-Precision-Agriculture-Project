@@ -13,15 +13,10 @@ import lombok.NoArgsConstructor;
 public class UserResponseDTO {
 
     private Long id;
-<<<<<<< HEAD
     private String fullName;
     private String username;
     private String email;
     private String phoneNumber;
-=======
-    private String username;
-    private String email;
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     private String role;
     private LocalDateTime createdAt;
 }

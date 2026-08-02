@@ -36,7 +36,6 @@ public class Farm {
     @Column(name = "farm_name", nullable = false, length = 150)
     private String farmName;
 
-<<<<<<< HEAD
     @Column(name = "farmer_name", length = 150)
     private String farmerName;
 
@@ -52,28 +51,13 @@ public class Farm {
     @Column(name = "water_source", length = 100)
     private String waterSource;
 
+    @Column(name = "current_crop", length = 150)
+    private String currentCrop;
+
     @Column(length = 50)
     private String status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-=======
-    @Column(nullable = false, length = 255)
-    private String location;
-
-   @Column(nullable = false, precision = 12, scale = 2)
-private BigDecimal area;
-
-@Column(name = "current_crop", length = 150)
-private String currentCrop;
-
-@Column(name = "water_source", length = 150)
-private String waterSource;
-
-@Column(name = "status", length = 50)
-private String status;
-
-@ManyToOne(fetch = FetchType.LAZY)
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 

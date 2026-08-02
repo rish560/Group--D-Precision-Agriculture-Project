@@ -4,14 +4,9 @@ import { FarmMap } from '../../components/features/FarmMap';
 import { Card } from '../../components/ui/Card';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { StatCard } from '../../components/ui/StatCard';
-<<<<<<< HEAD
 import { getMarketPrices, getSchemes, getSoilReports, getWeather, getUpagStats } from '../../services/mockApi';
 import { getCrops } from '../../api/cropApi';
 import { getFarms } from '../../api/farmApi';
-=======
-import { useAuth } from '../../context/AuthContext';
-import { getCrops, getFarms, getMarketPrices, getSchemes, getSoilReports, getWeather, getUpagStats } from '../../services/mockApi';
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
 /* ── Shared helpers ── */
 

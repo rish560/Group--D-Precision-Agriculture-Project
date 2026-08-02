@@ -21,15 +21,16 @@ const apis = {
 
 const tableColumns = {
   farms: [
-    ['farmerName', 'Farmer Name'],
+    ['name', 'Farm Name'],
     ['location', 'Location'],
     ['area', 'Area'],
+    ['currentCrop', 'Crop'],
     ['waterSource', 'Water Source'],
     ['status', 'Status']
   ],
   crops: [
-    ['farmerName', 'Farmer Name'],
-    ['name', 'Crop'],
+    ['name', 'Crop Name'],
+    ['farm', 'Farm'],
     ['stage', 'Growth Stage'],
     ['health', 'Crop Health'],
     ['expectedYield', 'Expected Yield']
@@ -55,11 +56,11 @@ export const PRESET_CROPS = [
 
 export const AREA_UNITS = ['Acres', 'Hectares', 'Square Meter'];
 export const WATER_SOURCES = ['Borewell', 'Well', 'Canal', 'River', 'Pond', 'Rainwater', 'Tap Water'];
-export const FARM_STATUSES = ['Healthy', 'Needs Attention', 'Under Maintenance', 'Inactive'];
+export const FARM_STATUSES = ['Healthy', 'Monitoring', 'Optimized', 'Needs Attention', 'Under Maintenance', 'Inactive'];
 
 export const GROWTH_STAGES = ['Seeding', 'Vegetative', 'Flowering', 'Fruiting', 'Harvest Ready', 'Maturity'];
 export const CROP_HEALTHS = ['Excellent', 'Good', 'Average', 'Poor', 'Diseased'];
-export const YIELD_UNITS = ['tons/acre', 'tons/hectare', 'kg/acre', 'quintals/acre'];
+export const CROP_STATUSES = ['Active', 'Planned', 'Harvested', 'Inactive'];
 
 export const RecordManagement = ({ resource, canManage = false, roleFilter, title }) => {
   const apiSetup = apis[resource];
@@ -146,20 +147,23 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
 
   const canAdd = resource === 'users' ? isAdmin : (isAdmin || isManager);
 
+  // Farm Manager only gets the "view" (eye) action, same as Guest — Edit/Delete
+  // are Admin-only actions. (Farm Manager can still Add records via the
+  // Add Farm / Add Crop pages; they just can't edit/delete afterwards.)
   const canEdit = useCallback(
     (item) => {
       if (resource === 'users') return isAdmin;
-      return isAdmin || (isManager && isOwnRecord(item));
+      return isAdmin;
     },
-    [isAdmin, isManager, resource, isOwnRecord]
+    [isAdmin]
   );
 
   const canDelete = useCallback(
     (item) => {
       if (resource === 'users') return isAdmin;
-      return isAdmin || (isManager && isOwnRecord(item));
+      return isAdmin;
     },
-    [isAdmin, isManager, resource, isOwnRecord]
+    [isAdmin]
   );
 
   useEffect(() => {
@@ -195,11 +199,11 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     if (resource === 'farms') {
       return {
         farmerName: defaultFarmerName,
-        name: 'Farm',
+        name: '',
         location: '',
-        numericArea: '',
-        areaUnit: 'Acres',
-        waterSource: 'Borewell',
+        currentCrop: '',
+        area: '',
+        waterSource: '',
         status: 'Healthy',
       };
     }
@@ -209,11 +213,11 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         farmerName: defaultFarmerName,
         name: '',
         farmId: defaultFarmId,
-        stage: 'Flowering',
-        health: 'Good',
-        expectedYieldAmount: '',
-        expectedYieldUnit: 'tons/acre',
+        stage: 'Vegetative',
+        health: 'Excellent',
+        plantingDate: '',
         expectedYield: '',
+        status: 'Active',
       };
     }
     return { fullName: '', email: '', role: 'Farm Manager', phoneNumber: '', address: '' };
@@ -221,11 +225,18 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
 
   const [record, setRecord] = useState(() => getBlankRecord());
 
+  // NOTE: only reset the form when we *enter* the add-route (isAddRoute
+  // flips false -> true), not every time getBlankRecord's identity changes.
+  // getBlankRecord depends on farmsList, which loads asynchronously — if we
+  // included it here, the effect would re-fire the moment the farms list
+  // finished loading and silently wipe out whatever the user had already
+  // typed (e.g. Crop Name), forcing them to re-enter it a second time.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (isAddRoute) {
       setRecord(getBlankRecord());
     }
-  }, [isAddRoute, getBlankRecord]);
+  }, [isAddRoute]);
 
   const openCreateModal = async () => {
     // For crops: always refetch the latest farms so the dropdown is up-to-date
@@ -248,30 +259,26 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
       setRecord({
         ...item,
         farmerName: item.farmerName || item.farmer || item.owner || defaultFarmerName,
-        name: item.name || item.farmName || 'Farm',
+        name: item.name || item.farmName || '',
         location: item.location || '',
-        numericArea: item.numericArea != null ? item.numericArea : (item.areaValue != null ? item.areaValue : (item.area ? parseFloat(item.area) || '' : '')),
-        areaUnit: item.areaUnit || 'Acres',
-        waterSource: item.waterSource || 'Borewell',
+        currentCrop: item.currentCrop || '',
+        area: item.area || (item.numericArea != null ? `${item.numericArea} ${item.areaUnit || 'Acres'}` : ''),
+        waterSource: item.waterSource || '',
         status: item.status || 'Healthy',
       });
     } else if (resource === 'crops') {
       const cropName = item.name || item.cropName || '';
-      const yieldStr = String(item.expectedYield || '').trim();
-      const yieldParts = yieldStr.split(' ');
-      const yieldNum = yieldParts[0] && !isNaN(parseFloat(yieldParts[0])) ? yieldParts[0] : yieldStr;
-      const yieldUnit = yieldParts.length > 1 ? yieldParts.slice(1).join(' ') : 'tons/acre';
 
       setRecord({
         ...item,
         farmerName: item.farmerName || item.farmer || defaultFarmerName,
         name: cropName,
         farmId: item.farmId || (farmsList.find(f => (f.name || f.farmName) === item.farm)?.id) || '',
-        stage: item.stage || 'Flowering',
-        health: item.health || 'Good',
-        expectedYieldAmount: yieldNum,
-        expectedYieldUnit: YIELD_UNITS.includes(yieldUnit) ? yieldUnit : 'tons/acre',
+        stage: item.stage || 'Vegetative',
+        health: item.health || 'Excellent',
+        plantingDate: item.plantingDate || '',
         expectedYield: item.expectedYield || '',
+        status: item.status || 'Active',
       });
     } else {
       setRecord({ ...item });
@@ -340,8 +347,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
       const savePayload = { ...record };
 
       if (resource === 'farms') {
-        if (!savePayload.farmerName || !savePayload.farmerName.trim()) {
-          addToast('Farmer Name is required.', 'error');
+        if (!savePayload.name || !savePayload.name.trim()) {
+          addToast('Farm Name is required.', 'error');
           setSaving(false);
           return;
         }
@@ -350,33 +357,47 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
           setSaving(false);
           return;
         }
-        const numArea = parseFloat(savePayload.numericArea);
-        if (isNaN(numArea) || numArea <= 0) {
-          addToast('Area must be a number greater than 0.', 'error');
+        if (!savePayload.currentCrop || !savePayload.currentCrop.trim()) {
+          addToast('Crop / Current Crop is required.', 'error');
           setSaving(false);
           return;
         }
-        if (!savePayload.areaUnit) {
-          addToast('Area Unit is required.', 'error');
+        if (!savePayload.area || !String(savePayload.area).trim()) {
+          addToast('Area is required.', 'error');
           setSaving(false);
           return;
         }
-        if (!savePayload.waterSource) {
+        if (!savePayload.waterSource || !savePayload.waterSource.trim()) {
           addToast('Water Source is required.', 'error');
           setSaving(false);
           return;
         }
-        if (!savePayload.status) {
-          addToast('Status is required.', 'error');
+
+        // Parse a free-text area like "48 acres" into a number + unit for the backend
+        const areaText = String(savePayload.area).trim();
+        const areaMatch = areaText.match(/([\d.]+)\s*(.*)/);
+        const numArea = areaMatch ? parseFloat(areaMatch[1]) : NaN;
+        if (isNaN(numArea) || numArea <= 0) {
+          addToast('Area must include a valid number (e.g. 48 acres).', 'error');
           setSaving(false);
           return;
         }
+        const unitText = (areaMatch && areaMatch[2] ? areaMatch[2].trim() : '').toLowerCase();
+        const matchedUnit = AREA_UNITS.find((u) => u.toLowerCase() === unitText)
+          || AREA_UNITS.find((u) => unitText.startsWith(u.toLowerCase().slice(0, 4)))
+          || 'Acres';
 
-        savePayload.farmerName = savePayload.farmerName.trim();
+        savePayload.name = savePayload.name.trim();
+        savePayload.farmName = savePayload.name;
+        savePayload.location = savePayload.location.trim();
+        savePayload.currentCrop = savePayload.currentCrop.trim();
+        savePayload.waterSource = savePayload.waterSource.trim();
+        savePayload.status = savePayload.status || 'Healthy';
+        savePayload.farmerName = (savePayload.farmerName || defaultFarmerName || '').trim();
         savePayload.farmer = savePayload.farmerName;
-        savePayload.farmName = savePayload.name || 'Farm';
-        savePayload.area = `${numArea} ${savePayload.areaUnit}`;
         savePayload.numericArea = numArea;
+        savePayload.areaUnit = matchedUnit;
+        savePayload.area = `${numArea} ${matchedUnit}`;
       } else if (resource === 'crops') {
         const finalCropName = (savePayload.name || '').trim();
 
@@ -391,7 +412,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
           return;
         }
         if (!savePayload.farmId) {
-          addToast('Farm selection is required.', 'error');
+          addToast('Assigned Farm is required.', 'error');
           setSaving(false);
           return;
         }
@@ -405,12 +426,12 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
           setSaving(false);
           return;
         }
-
-        let finalYield = savePayload.expectedYieldAmount
-          ? `${savePayload.expectedYieldAmount} ${savePayload.expectedYieldUnit || ''}`.trim()
-          : savePayload.expectedYield;
-
-        if (!finalYield || !finalYield.trim()) {
+        if (!savePayload.plantingDate) {
+          addToast('Planting Date is required.', 'error');
+          setSaving(false);
+          return;
+        }
+        if (!savePayload.expectedYield || !String(savePayload.expectedYield).trim()) {
           addToast('Expected Yield is required.', 'error');
           setSaving(false);
           return;
@@ -420,7 +441,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         savePayload.farmer = savePayload.farmerName;
         savePayload.name = finalCropName;
         savePayload.cropName = finalCropName;
-        savePayload.expectedYield = finalYield;
+        savePayload.expectedYield = String(savePayload.expectedYield).trim();
+        savePayload.status = savePayload.status || 'Active';
       }
 
       if (mode === 'create') {
@@ -437,8 +459,9 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
       addToast(`${resource.slice(0, -1)} ${mode === 'create' ? 'created' : 'updated'} successfully.`, 'success');
       setMode(null);
       await loadRecords();
-    } catch {
-      addToast(`Unable to save record.`, 'error');
+    } catch (err) {
+      const backendMessage = err?.response?.data?.message;
+      addToast(backendMessage || 'Unable to save record.', 'error');
     } finally {
       setSaving(false);
     }
@@ -510,6 +533,10 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                       <dd className="mt-1 font-medium text-gray-900 text-sm">{record.location}</dd>
                     </div>
                     <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
+                      <dt className="text-xs font-semibold uppercase text-gray-400">Crop / Current Crop</dt>
+                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.currentCrop || '—'}</dd>
+                    </div>
+                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
                       <dt className="text-xs font-semibold uppercase text-gray-400">Area</dt>
                       <dd className="mt-1 font-medium text-gray-900 text-sm">{record.area}</dd>
                     </div>
@@ -541,8 +568,16 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                       <dd className="mt-1 font-medium text-gray-900 text-sm">{record.health}</dd>
                     </div>
                     <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
+                      <dt className="text-xs font-semibold uppercase text-gray-400">Planting Date</dt>
+                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.plantingDate || '—'}</dd>
+                    </div>
+                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
                       <dt className="text-xs font-semibold uppercase text-gray-400">Expected Yield</dt>
                       <dd className="mt-1 font-medium text-gray-900 text-sm">{record.expectedYield}</dd>
+                    </div>
+                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
+                      <dt className="text-xs font-semibold uppercase text-gray-400">Status</dt>
+                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.status || '—'}</dd>
                     </div>
                   </>
                 ) : (
@@ -572,15 +607,15 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Farmer Name <span className="text-red-500">*</span>
+                      Farm Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
-                      value={record.farmerName || ''}
-                      onChange={(e) => setRecord((cur) => ({ ...cur, farmerName: e.target.value }))}
+                      value={record.name || ''}
+                      onChange={(e) => setRecord((cur) => ({ ...cur, name: e.target.value }))}
                       className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="e.g. Ramesh Kumar"
+                      placeholder="e.g. Green Valley Farm"
                     />
                   </div>
 
@@ -594,64 +629,69 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                       value={record.location || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, location: e.target.value }))}
                       className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="e.g. Kanpur"
+                      placeholder="e.g. Coimbatore, India"
                     />
                   </div>
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Area <span className="text-red-500">*</span>
+                      Crop / Current Crop <span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="number"
-                      step="any"
-                      min="0.01"
+                      type="text"
                       required
-                      value={record.numericArea || ''}
-                      onChange={(e) => setRecord((cur) => ({ ...cur, numericArea: e.target.value }))}
+                      list="preset-crops-farm"
+                      value={record.currentCrop || ''}
+                      onChange={(e) => setRecord((cur) => ({ ...cur, currentCrop: e.target.value }))}
                       className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="e.g. 25"
+                      placeholder="e.g. Tomato"
                     />
+                    <datalist id="preset-crops-farm">
+                      {PRESET_CROPS.map((c) => (
+                        <option key={c} value={c} />
+                      ))}
+                    </datalist>
                   </div>
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Area Unit <span className="text-red-500">*</span>
+                      Area (e.g. 48 acres) <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <input
+                      type="text"
                       required
-                      value={record.areaUnit || 'Acres'}
-                      onChange={(e) => setRecord((cur) => ({ ...cur, areaUnit: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
-                    >
-                      {AREA_UNITS.map((unit) => (
-                        <option key={unit} value={unit}>{unit}</option>
-                      ))}
-                    </select>
+                      value={record.area || ''}
+                      onChange={(e) => setRecord((cur) => ({ ...cur, area: e.target.value }))}
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
+                      placeholder="e.g. 48 acres"
+                    />
                   </div>
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
                       Water Source <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <input
+                      type="text"
                       required
-                      value={record.waterSource || 'Borewell'}
+                      list="water-sources"
+                      value={record.waterSource || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, waterSource: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
-                    >
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
+                      placeholder="e.g. river"
+                    />
+                    <datalist id="water-sources">
                       {WATER_SOURCES.map((ws) => (
-                        <option key={ws} value={ws}>{ws}</option>
+                        <option key={ws} value={ws} />
                       ))}
-                    </select>
+                    </datalist>
                   </div>
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Status <span className="text-red-500">*</span>
+                      Status
                     </label>
                     <select
-                      required
                       value={record.status || 'Healthy'}
                       onChange={(e) => setRecord((cur) => ({ ...cur, status: e.target.value }))}
                       className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
@@ -674,17 +714,22 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                       type="text"
                       required
                       maxLength={100}
+                      list="preset-crops-crop"
                       value={record.name || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, name: e.target.value }))}
                       className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
                       placeholder="e.g. Rice, Wheat, Tomato"
                     />
+                    <datalist id="preset-crops-crop">
+                      {PRESET_CROPS.map((c) => (
+                        <option key={c} value={c} />
+                      ))}
+                    </datalist>
                   </div>
-
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Farmer / Farm <span className="text-red-500">*</span>
+                      Assigned Farm <span className="text-red-500">*</span>
                     </label>
                     <select
                       required
@@ -699,10 +744,10 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                       }}
                       className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
                     >
-                      <option value="" disabled>Select Farmer / Farm</option>
+                      <option value="" disabled>Select Farm</option>
                       {farmsList.map((f) => (
                         <option key={f.id || f.farmId} value={f.id || f.farmId}>
-                          {f.farmerName || f.farmer || f.owner || f.name} ({f.location || 'Kanpur'})
+                          {f.name || f.farmName} ({f.location || 'Kanpur'})
                         </option>
                       ))}
                     </select>
@@ -714,7 +759,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                     </label>
                     <select
                       required
-                      value={record.stage || 'Flowering'}
+                      value={record.stage || 'Vegetative'}
                       onChange={(e) => setRecord((cur) => ({ ...cur, stage: e.target.value }))}
                       className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
                     >
@@ -730,7 +775,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                     </label>
                     <select
                       required
-                      value={record.health || 'Good'}
+                      value={record.health || 'Excellent'}
                       onChange={(e) => setRecord((cur) => ({ ...cur, health: e.target.value }))}
                       className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
                     >
@@ -740,37 +785,46 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                     </select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                        Expected Yield Amount <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        min="0.01"
-                        required
-                        value={record.expectedYieldAmount || ''}
-                        onChange={(e) => setRecord((cur) => ({ ...cur, expectedYieldAmount: e.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                        placeholder="e.g. 4.5"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                        Yield Unit <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        required
-                        value={record.expectedYieldUnit || 'tons/acre'}
-                        onChange={(e) => setRecord((cur) => ({ ...cur, expectedYieldUnit: e.target.value }))}
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
-                      >
-                        {YIELD_UNITS.map((u) => (
-                          <option key={u} value={u}>{u}</option>
-                        ))}
-                      </select>
-                    </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Planting Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={record.plantingDate || ''}
+                      onChange={(e) => setRecord((cur) => ({ ...cur, plantingDate: e.target.value }))}
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Expected Yield <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={record.expectedYield || ''}
+                      onChange={(e) => setRecord((cur) => ({ ...cur, expectedYield: e.target.value }))}
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
+                      placeholder="Enter expected yield"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Status
+                    </label>
+                    <select
+                      value={record.status || 'Active'}
+                      onChange={(e) => setRecord((cur) => ({ ...cur, status: e.target.value }))}
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
+                    >
+                      {CROP_STATUSES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               )}
@@ -1040,3 +1094,6 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     </div>
   );
 };
+
+
+

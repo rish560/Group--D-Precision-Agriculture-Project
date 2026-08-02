@@ -4,11 +4,7 @@ export const users = [
     fullName: "Asha Nair",
     email: "asha@agrisense.com",
     password: "Farm@123",
-<<<<<<< HEAD
     role: "Farm Manager",
-=======
-    role: "Farmer",
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     phone: "+91 9876543210",
     address: "Coimbatore, Tamil Nadu",
     bio: "Independent farmer focused on sustainable irrigation and climate-resilient cultivation.",

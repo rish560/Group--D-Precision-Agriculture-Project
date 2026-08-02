@@ -2,12 +2,7 @@ package com.farmverse.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-<<<<<<< HEAD
 import org.springframework.dao.DataIntegrityViolationException;
-=======
-import java.util.LinkedHashMap;
-import java.util.Map;
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -41,7 +36,6 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
     }
 
-<<<<<<< HEAD
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> handleIllegalArgument(IllegalArgumentException ex,
                                                                   HttpServletRequest request) {
@@ -61,8 +55,6 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, msg, request.getRequestURI());
     }
 
-=======
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex,
                                                                 HttpServletRequest request) {
@@ -72,7 +64,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex,
                                                           HttpServletRequest request) {
-<<<<<<< HEAD
         String message = ex.getMessage();
         if (message == null || message.trim().isEmpty()) {
             if (ex.getCause() != null && ex.getCause().getMessage() != null) {
@@ -82,9 +73,6 @@ public class GlobalExceptionHandler {
             }
         }
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, message, request.getRequestURI());
-=======
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request.getRequestURI());
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     }
 
     private ResponseEntity<ApiErrorResponse> buildResponse(HttpStatus status, String message, String path) {

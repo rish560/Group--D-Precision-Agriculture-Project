@@ -29,7 +29,6 @@ public class CropServiceImpl implements CropService {
         Farm farm = farmRepository.findById(cropRequestDTO.getFarmId())
                 .orElseThrow(() -> new ResourceNotFoundException("Farm not found"));
 
-<<<<<<< HEAD
         String seasonVal = cropRequestDTO.getSeason() != null && !cropRequestDTO.getSeason().trim().isEmpty()
                 ? cropRequestDTO.getSeason()
                 : (cropRequestDTO.getStage() != null ? cropRequestDTO.getStage() : "Kharif");
@@ -40,19 +39,10 @@ public class CropServiceImpl implements CropService {
                 .stage(cropRequestDTO.getStage() != null ? cropRequestDTO.getStage() : "Vegetative")
                 .health(cropRequestDTO.getHealth() != null ? cropRequestDTO.getHealth() : "Excellent")
                 .expectedYield(cropRequestDTO.getExpectedYield() != null ? cropRequestDTO.getExpectedYield() : "")
+                .plantingDate(cropRequestDTO.getPlantingDate())
+                .status(cropRequestDTO.getStatus() != null ? cropRequestDTO.getStatus() : "Active")
                 .farm(farm)
                 .build();
-=======
-       Crop crop = Crop.builder()
-        .cropName(cropRequestDTO.getCropName())
-        .season(cropRequestDTO.getSeason())
-        .stage(cropRequestDTO.getStage())
-        .health(cropRequestDTO.getHealth())
-        .plantingDate(cropRequestDTO.getPlantingDate())
-        .expectedYield(cropRequestDTO.getExpectedYield())
-        .farm(farm)
-        .build();
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
         return toResponseDTO(cropRepository.save(crop));
     }
@@ -87,22 +77,14 @@ public class CropServiceImpl implements CropService {
         Farm farm = farmRepository.findById(cropRequestDTO.getFarmId())
             .orElseThrow(() -> new ResourceNotFoundException("Farm not found"));
 
-<<<<<<< HEAD
         crop.setCropName(cropRequestDTO.getCropName());
         if (cropRequestDTO.getSeason() != null) crop.setSeason(cropRequestDTO.getSeason());
         if (cropRequestDTO.getStage() != null) crop.setStage(cropRequestDTO.getStage());
         if (cropRequestDTO.getHealth() != null) crop.setHealth(cropRequestDTO.getHealth());
         if (cropRequestDTO.getExpectedYield() != null) crop.setExpectedYield(cropRequestDTO.getExpectedYield());
+        if (cropRequestDTO.getPlantingDate() != null) crop.setPlantingDate(cropRequestDTO.getPlantingDate());
+        if (cropRequestDTO.getStatus() != null) crop.setStatus(cropRequestDTO.getStatus());
         crop.setFarm(farm);
-=======
-            crop.setCropName(cropRequestDTO.getCropName());
-crop.setSeason(cropRequestDTO.getSeason());
-crop.setStage(cropRequestDTO.getStage());
-crop.setHealth(cropRequestDTO.getHealth());
-crop.setPlantingDate(cropRequestDTO.getPlantingDate());
-crop.setExpectedYield(cropRequestDTO.getExpectedYield());
-crop.setFarm(farm);
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
         return toResponseDTO(cropRepository.save(crop));
     }
@@ -124,7 +106,6 @@ crop.setFarm(farm);
     }
 
     private CropResponseDTO toResponseDTO(Crop crop) {
-<<<<<<< HEAD
         String farmerName = "";
         if (crop.getFarm() != null) {
             if (crop.getFarm().getFarmerName() != null && !crop.getFarm().getFarmerName().trim().isEmpty()) {
@@ -143,24 +124,11 @@ crop.setFarm(farm);
                 .stage(crop.getStage() != null ? crop.getStage() : crop.getSeason())
                 .health(crop.getHealth() != null ? crop.getHealth() : "Excellent")
                 .expectedYield(crop.getExpectedYield() != null ? crop.getExpectedYield() : "")
+                .plantingDate(crop.getPlantingDate())
+                .status(crop.getStatus() != null ? crop.getStatus() : "Active")
                 .farmId(crop.getFarm().getFarmId())
                 .farmName(crop.getFarm().getFarmName())
                 .farmerName(farmerName)
                 .build();
-=======
-        return CropResponseDTO.builder()
-
-            .cropId(crop.getCropId())
-            .cropName(crop.getCropName())
-            .season(crop.getSeason())
-            .stage(crop.getStage())
-            .health(crop.getHealth())
-            .plantingDate(crop.getPlantingDate())
-            .expectedYield(crop.getExpectedYield())
-            .farmId(crop.getFarm().getFarmId())
-            .farmName(crop.getFarm().getFarmName())
-            .build();
-              
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     }
 }

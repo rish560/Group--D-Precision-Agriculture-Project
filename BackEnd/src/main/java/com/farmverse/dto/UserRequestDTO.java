@@ -14,13 +14,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserRequestDTO {
 
-<<<<<<< HEAD
     @Size(max = 150, message = "Full name must be at most 150 characters")
     private String fullName;
 
-=======
-    @NotBlank(message = "Username is required")
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     @Size(max = 100, message = "Username must be at most 100 characters")
     private String username;
 
@@ -32,12 +28,9 @@ public class UserRequestDTO {
     @NotBlank(message = "Password is required")
     private String password;
 
-<<<<<<< HEAD
     private String phoneNumber;
     private String phone;
 
-=======
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
     @NotBlank(message = "Role is required")
     @Size(max = 50, message = "Role must be at most 50 characters")
     private String role;

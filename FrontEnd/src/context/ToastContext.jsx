@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
-=======
-import { createContext, useContext, useMemo, useState } from 'react';
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
 const ToastContext = createContext({
   toasts: [],
@@ -13,7 +9,6 @@ const ToastContext = createContext({
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
-<<<<<<< HEAD
   const dismissToast = useCallback((id) => {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
@@ -25,19 +20,6 @@ export const ToastProvider = ({ children }) => {
   }, [dismissToast]);
 
   const value = useMemo(() => ({ toasts, addToast, dismissToast }), [toasts, addToast, dismissToast]);
-=======
-  const dismissToast = (id) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id));
-  };
-
-  const addToast = (message, type = 'info') => {
-    const id = Date.now() + Math.random();
-    setToasts((current) => [...current, { id, message, type }]);
-    window.setTimeout(() => dismissToast(id), 3200);
-  };
-
-  const value = useMemo(() => ({ toasts, addToast, dismissToast }), [toasts]);
->>>>>>> 1f0e22b0c9128fd588c6bd8d88cf4cb855622504
 
   return (
     <ToastContext.Provider value={value}>
