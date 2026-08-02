@@ -304,6 +304,63 @@ Activities include:
 
 ---
 
+---
+
+# Milestone 3 Progress
+
+## Frontend–Backend Integration
+
+The frontend and backend have now been fully connected, moving the application from static UI screens to a functional full-stack system.
+
+Key integration work includes:
+
+* Connected Login and Registration pages to the User Authentication APIs
+* Connected Dashboard to live backend data (Total Farms, Total Crops)
+* Connected Farm Management pages to Farm CRUD APIs (Add, View, Edit)
+* Connected Crop Management pages to Crop CRUD APIs (Add, View, Update)
+* Implemented API calls using Axios/Fetch from React components
+* Handled backend response data and rendered it dynamically on the UI
+* Added loading and error states while fetching data from the backend
+* Verified role-based data access (Admin, Farm Manager, Guest) end-to-end through the connected APIs
+
+---
+
+## UI Updates & Improvements
+
+Based on Milestone 2 feedback and real data from the backend, the UI has been refined:
+
+* Updated Dashboard layout to correctly display real-time Farm and Crop counts
+* Improved form validation feedback on Login, Registration, Farm, and Crop forms
+* Refined table/list views for Farms and Crops to reflect actual database records
+* Improved responsiveness of pages across screen sizes using Tailwind CSS
+* Added confirmation prompts for edit actions
+* Polished navigation flow between Dashboard, Farm, and Crop pages
+
+---
+
+## Testing
+
+* Tested API integration between React frontend and Spring Boot backend
+* Verified data flow: Frontend → REST API → MySQL Database → Backend Response → Frontend Display
+* Tested role-based access restrictions after integration (Admin, Farm Manager, Guest)
+* Fixed bugs found during frontend-backend connectivity testing
+
+---
+
+## Documentation Updated
+
+* Updated Frontend and Backend documentation to reflect integrated APIs
+* Updated Project Plan with Milestone 3 status
+* Updated GitHub README with current project status
+
+---
+
+## GitHub Repository Maintained
+
+* Regular commits for integration-related changes
+* Feature branches merged after testing
+* Updated version history reflecting Milestone 3 work
+
 # Project Workflow
 
 ```
