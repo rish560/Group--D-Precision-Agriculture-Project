@@ -7,6 +7,18 @@ import { LoadingState } from '../components/ui/LoadingState';
 import { normalizeRole } from '../config/roleRoutes';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import appleImage from '../assets/crops/apple.jpg';
+import bananaImage from '../assets/crops/banana.jpg';
+import cornImage from '../assets/crops/corn.jpg';
+import cottonImage from '../assets/crops/cotton.jpg';
+import groundnutImage from '../assets/crops/groundnut.jpg';
+import mangoImage from '../assets/crops/mango.jpg';
+import mustardImage from '../assets/crops/mustard.jpg';
+import onionImage from '../assets/crops/onion.jpg';
+import soybeanImage from '../assets/crops/soybean.jpg';
+import sugarCaneImage from '../assets/crops/SugarCane.jpg';
+import teaImage from '../assets/crops/tea.jpg';
+import tomatoImage from '../assets/crops/tomato.jpg';
 
 // Import custom API modules
 import { getUsers, createUser, updateUser, deleteUser } from '../api/userApi';
@@ -53,6 +65,26 @@ export const PRESET_CROPS = [
   'Rice', 'Wheat', 'Corn', 'Sugarcane', 'Cotton', 'Potato', 'Tomato',
   'Onion', 'Mustard', 'Soybean', 'Groundnut', 'Banana', 'Mango', 'Apple', 'Tea'
 ];
+
+const getCropImage = (cropName) => {
+  const normalized = String(cropName || '').trim().toLowerCase();
+
+  if (!normalized) return null;
+  if (normalized.includes('apple')) return appleImage;
+  if (normalized.includes('banana')) return bananaImage;
+  if (normalized.includes('corn')) return cornImage;
+  if (normalized.includes('cotton')) return cottonImage;
+  if (normalized.includes('groundnut') || normalized.includes('peanut')) return groundnutImage;
+  if (normalized.includes('mango')) return mangoImage;
+  if (normalized.includes('mustard')) return mustardImage;
+  if (normalized.includes('onion')) return onionImage;
+  if (normalized.includes('soybean') || normalized.includes('soy bean')) return soybeanImage;
+  if (normalized.includes('sugarcane') || normalized.includes('sugar cane')) return sugarCaneImage;
+  if (normalized.includes('tea')) return teaImage;
+  if (normalized.includes('tomato')) return tomatoImage;
+
+  return null;
+};
 
 export const AREA_UNITS = ['Acres', 'Hectares', 'Square Meter'];
 export const WATER_SOURCES = ['Borewell', 'Well', 'Canal', 'River', 'Pond', 'Rainwater', 'Tap Water'];
@@ -107,37 +139,60 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         item.user_id,
         item.farmerId,
         item.farmer_id,
+        item.ownerId,
+        item.owner_id,
         item.owner,
         item.manager,
         item.farmer,
         item.farmerName,
+        item.farmOwner,
+        item.farmOwnerName,
+        item.farmManager,
+        item.ownerUsername,
       ];
 
-      for (const val of checkFields) {
-        if (val === undefined || val === null || val === '') continue;
-        const sVal = String(val).toLowerCase().trim();
-        if (
+      const matchesUserIdentity = (value) => {
+        if (value === undefined || value === null || value === '') return false;
+        const sVal = String(value).toLowerCase().trim();
+        return (
           (userIdStr && sVal === userIdStr) ||
           (userEmailStr && sVal === userEmailStr) ||
           (userNameStr && (sVal === userNameStr || sVal.includes(userNameStr) || userNameStr.includes(sVal)))
-        ) {
+        );
+      };
+
+      for (const val of checkFields) {
+        if (matchesUserIdentity(val)) {
           return true;
         }
       }
 
-      if (resource === 'crops' && item.farm && Array.isArray(farmsList)) {
-        const cropFarmName = String(item.farm).toLowerCase().trim();
-        const belongsToOwnedFarm = farmsList.some((farm) => {
+      if (resource === 'crops' && Array.isArray(farmsList)) {
+        const cropFarmId = String(item.farmId || item.farm_id || item.farm?.id || item.farm?.farmId || '').trim();
+        const cropFarmName = String(item.farm || item.farmName || '').toLowerCase().trim();
+
+        const matchedFarm = farmsList.find((farm) => {
+          const farmId = String(farm.id || farm.farmId || '').trim();
           const farmName = String(farm.name || farm.farmName || '').toLowerCase().trim();
-          const farmOwner = String(farm.owner || farm.manager || farm.farmerName || '').toLowerCase().trim();
           return (
-            farmName === cropFarmName &&
-            ((userIdStr && farmOwner.includes(userIdStr)) ||
-              (userNameStr && farmOwner.includes(userNameStr)) ||
-              (userEmailStr && farmOwner.includes(userEmailStr)))
+            (cropFarmId && farmId && cropFarmId === farmId) ||
+            (cropFarmName && farmName && farmName === cropFarmName)
           );
         });
-        if (belongsToOwnedFarm) return true;
+
+        if (matchedFarm) {
+          const farmOwnerId = String(matchedFarm.ownerId || matchedFarm.owner_id || matchedFarm.managerId || matchedFarm.userId || matchedFarm.user_id || '').toLowerCase();
+          const farmOwnerName = String(matchedFarm.owner || matchedFarm.manager || matchedFarm.farmerName || matchedFarm.farmer || matchedFarm.ownerUsername || '').toLowerCase().trim();
+          const farmOwnerEmail = String(matchedFarm.ownerEmail || '').toLowerCase().trim();
+
+          if (
+            (userIdStr && farmOwnerId === userIdStr) ||
+            (userNameStr && farmOwnerName.includes(userNameStr)) ||
+            (userEmailStr && (farmOwnerEmail.includes(userEmailStr) || farmOwnerName.includes(userEmailStr)))
+          ) {
+            return true;
+          }
+        }
       }
 
       return false;
@@ -147,23 +202,24 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
 
   const canAdd = resource === 'users' ? isAdmin : (isAdmin || isManager);
 
-  // Farm Manager only gets the "view" (eye) action, same as Guest — Edit/Delete
-  // are Admin-only actions. (Farm Manager can still Add records via the
-  // Add Farm / Add Crop pages; they just can't edit/delete afterwards.)
   const canEdit = useCallback(
     (item) => {
       if (resource === 'users') return isAdmin;
+      if (resource === 'farms') return isAdmin || (isManager && isOwnRecord(item));
+      if (resource === 'crops') return isAdmin || (isManager && isOwnRecord(item));
       return isAdmin;
     },
-    [isAdmin]
+    [isAdmin, isManager, isOwnRecord, resource]
   );
 
   const canDelete = useCallback(
     (item) => {
       if (resource === 'users') return isAdmin;
+      if (resource === 'farms') return isAdmin || (isManager && isOwnRecord(item));
+      if (resource === 'crops') return isAdmin || (isManager && isOwnRecord(item));
       return isAdmin;
     },
-    [isAdmin]
+    [isAdmin, isManager, isOwnRecord, resource]
   );
 
   useEffect(() => {
@@ -309,6 +365,33 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
   const visibleRecords = useMemo(() => {
     if (!records) return [];
     let list = records;
+
+    const isMyFarmsView = resource === 'farms' && title === 'My farms' && isManager && !isAdmin;
+    const isMyCropsView = resource === 'crops' && (title === 'Crop production' || title === 'My crops') && isManager && !isAdmin;
+
+    if (isMyFarmsView) {
+      const userIdStr = String(user?.id || '').toLowerCase();
+      const userNameStr = String(user?.fullName || user?.name || user?.username || '').toLowerCase().trim();
+      const userEmailStr = String(user?.email || '').toLowerCase().trim();
+
+      list = list.filter((farm) => {
+        const ownerId = String(farm.ownerId || farm.owner_id || '').toLowerCase();
+        const ownerName = String(farm.owner || farm.manager || farm.farmerName || '').toLowerCase().trim();
+        const ownerEmail = String(farm.ownerEmail || '').toLowerCase().trim();
+
+        return (
+          ownerId === userIdStr ||
+          ownerName.includes(userNameStr) ||
+          ownerEmail.includes(userEmailStr) ||
+          ownerName.includes(userEmailStr)
+        );
+      });
+    }
+
+    if (isMyCropsView) {
+      list = list.filter((crop) => isOwnRecord(crop));
+    }
+
     if (roleFilter) {
       const normTargetRole = normalizeRole(roleFilter);
       list = list.filter((r) => normalizeRole(r.role) === normTargetRole || r.role === roleFilter);
@@ -324,7 +407,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
       );
     }
     return list;
-  }, [records, roleFilter, filter, search]);
+  }, [records, roleFilter, filter, search, resource, title, isManager, isAdmin, user, farmsList, isOwnRecord]);
 
   const PAGE_SIZE = 6;
   const pages = Math.max(1, Math.ceil(visibleRecords.length / PAGE_SIZE));
@@ -932,55 +1015,108 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
       </Card>
 
       <Card className="p-0 overflow-hidden">
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="min-w-[760px] w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-500">
-              <tr>
-                {columns.map(([, label]) => (
-                  <th key={label} className="border-b border-gray-200 px-5 py-3.5 font-medium whitespace-nowrap">{label}</th>
-                ))}
-                <th className="border-b border-gray-200 px-5 py-3.5 font-medium whitespace-nowrap">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((item) => (
-                <tr key={item.id || item.farmId || item.cropId} className="hover:bg-gray-50 transition-colors">
-                  {columns.map(([key]) => (
-                    <td key={key} className="border-b border-gray-100 px-5 py-3.5 max-w-[220px] truncate" title={String(item[key] || '')}>
-                      {key === 'status' || key === 'health' ? (
-                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          ['Healthy', 'Excellent', 'Active'].includes(item[key]) 
-                            ? 'bg-green-50 text-green-700' 
-                            : ['Needs Attention', 'Good', 'Average', 'Stable'].includes(item[key]) 
-                            ? 'bg-amber-50 text-amber-700' 
-                            : 'bg-red-50 text-red-700'
-                        }`}>
-                          {item[key] || '—'}
-                        </span>
-                      ) : (
-                        item[key] || '—'
-                      )}
-                    </td>
-                  ))}
-                  <td className="border-b border-gray-100 px-5 py-3.5">
-                    <div className="flex gap-2">
+        {resource === 'farms' ? (
+          <div className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-3">
+            {rows.map((item) => {
+              const statusTone = ['Healthy', 'Excellent', 'Active'].includes(item.status)
+                ? 'bg-green-50 text-green-700 border-green-200'
+                : ['Needs Attention', 'Good', 'Average', 'Stable'].includes(item.status)
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-red-50 text-red-700 border-red-200';
+
+              const cropName = String(item.currentCrop || item.crop || item.name || '').trim();
+              const cropImage = getCropImage(cropName);
+              let cropVisual = { emoji: '🌱', accent: 'from-green-100 via-emerald-50 to-lime-100' };
+
+              if (cropName.toLowerCase().includes('potato')) {
+                cropVisual = { emoji: '🥔', accent: 'from-amber-100 via-orange-50 to-yellow-100' };
+              } else if (cropName.toLowerCase().includes('tomato')) {
+                cropVisual = { emoji: '🍅', accent: 'from-red-100 via-rose-50 to-orange-100' };
+              } else if (cropName.toLowerCase().includes('rice')) {
+                cropVisual = { emoji: '🌾', accent: 'from-yellow-100 via-lime-50 to-green-100' };
+              } else if (cropName.toLowerCase().includes('wheat')) {
+                cropVisual = { emoji: '🌾', accent: 'from-amber-100 via-yellow-50 to-lime-100' };
+              } else if (cropName.toLowerCase().includes('corn')) {
+                cropVisual = { emoji: '🌽', accent: 'from-yellow-100 via-amber-50 to-orange-100' };
+              } else if (cropName.toLowerCase().includes('cotton')) {
+                cropVisual = { emoji: '🧵', accent: 'from-slate-100 via-zinc-50 to-emerald-100' };
+              } else if (cropName.toLowerCase().includes('banana')) {
+                cropVisual = { emoji: '🍌', accent: 'from-yellow-100 via-amber-50 to-green-100' };
+              } else if (cropName.toLowerCase().includes('mango')) {
+                cropVisual = { emoji: '🥭', accent: 'from-orange-100 via-amber-50 to-green-100' };
+              } else if (cropName.toLowerCase().includes('apple')) {
+                cropVisual = { emoji: '🍎', accent: 'from-rose-100 via-red-50 to-green-100' };
+              }
+
+              return (
+                <div key={item.id || item.farmId || item.cropId} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
+                  <div className={`relative flex h-48 items-center justify-center overflow-hidden ${cropImage ? 'bg-gray-100' : `bg-gradient-to-br ${cropVisual.accent}`}`}>
+                    {cropImage ? (
+                      <img src={cropImage} alt={cropName || 'Crop'} className="absolute inset-0 h-full w-full object-cover" />
+                    ) : (
+                      <>
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.7),_transparent_45%)]" />
+                    <div className="absolute inset-0 opacity-25" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"220\" height=\"220\" viewBox=\"0 0 220 220\"%3E%3Cpath fill=\"%232d4f2c\" d=\"M20 150c20-45 46-70 86-70 30 0 56 18 78 54-24 20-48 30-76 30-26 0-50-10-88-14z\"/%3E%3C/svg%3E")', backgroundSize: 'cover'}} />
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10" />
+                      </>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
+                    <div className="relative z-10 flex h-full w-full items-end justify-start p-4">
+                      <div className="rounded-2xl border border-white/70 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-sm">
+                        {cropImage ? (
+                          <p className="text-sm font-semibold text-gray-700">{cropName || item.name || item.farmName || 'Farm'}</p>
+                        ) : (
+                          <>
+                            <div className="text-4xl leading-none">{cropVisual.emoji}</div>
+                            <p className="mt-1 text-sm font-semibold text-gray-700">{item.name || item.farmName || 'Farm'}</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-lg font-semibold text-gray-900">{item.name || item.farmName || 'Untitled Farm'}</p>
+                        <p className="text-sm text-gray-500">{item.location || 'Location not added'}</p>
+                      </div>
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${statusTone}`}>
+                        {item.status || 'Healthy'}
+                      </span>
+                    </div>
+
+                    <div className="grid gap-2 text-sm text-gray-600">
+                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+                        <span>Crop</span>
+                        <span className="font-medium text-gray-800">{item.currentCrop || '—'}</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+                        <span>Area</span>
+                        <span className="font-medium text-gray-800">{item.area || '—'}</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+                        <span>Water</span>
+                        <span className="font-medium text-gray-800">{item.waterSource || '—'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-1">
                       <button
                         type="button"
                         aria-label={`View ${resource.slice(0, -1)}`}
                         onClick={() => { setRecord(item); setMode('view'); }}
-                        className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition"
+                        className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
                       >
-                        <Eye className="h-4 w-4" />
+                        View
                       </button>
                       {canEdit(item) && (
                         <button
                           type="button"
                           aria-label={`Edit ${resource.slice(0, -1)}`}
                           onClick={() => openEditModal(item)}
-                          className="rounded-lg border border-green-200 p-1.5 text-green-700 hover:bg-green-50 transition"
-                          title="Edit record"
+                          className="flex-1 rounded-lg border border-green-200 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-50"
                         >
-                          <Pencil className="h-4 w-4" />
+                          Edit
                         </button>
                       )}
                       {canDelete(item) && (
@@ -988,95 +1124,100 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                           type="button"
                           aria-label={`Delete ${resource.slice(0, -1)}`}
                           onClick={() => { setRecord(item); setMode('delete'); }}
-                          className="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50 transition"
-                          title="Delete record"
+                          className="flex-1 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          Delete
                         </button>
                       )}
                     </div>
-                  </td>
-                </tr>
-              ))}
-              {!rows.length && (
-                <tr>
-                  <td colSpan={columns.length + 1} className="px-5 py-12 text-center text-gray-500">
-                    No records found matching current criteria.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="sm:hidden divide-y divide-gray-100">
-          {rows.map((item) => (
-            <div key={item.id || item.farmId || item.cropId} className="p-4 space-y-2.5">
-              <div className="flex items-start justify-between gap-3">
-                <p className="font-semibold text-gray-900 break-words">
-                  {item[columns[0][0]] || '—'}
-                </p>
-                <div className="flex shrink-0 gap-1.5">
-                  <button
-                    type="button"
-                    aria-label={`View ${resource.slice(0, -1)}`}
-                    onClick={() => { setRecord(item); setMode('view'); }}
-                    className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </button>
-                  {canEdit(item) && (
-                    <button
-                      type="button"
-                      aria-label={`Edit ${resource.slice(0, -1)}`}
-                      onClick={() => openEditModal(item)}
-                      className="rounded-lg border border-green-200 p-1.5 text-green-700 hover:bg-green-50 transition"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                  )}
-                  {canDelete(item) && (
-                    <button
-                      type="button"
-                      aria-label={`Delete ${resource.slice(0, -1)}`}
-                      onClick={() => { setRecord(item); setMode('delete'); }}
-                      className="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50 transition"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-              <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
-                {columns.slice(1).map(([key, label]) => (
-                  <div key={key} className="min-w-0">
-                    <dt className="text-gray-400">{label}</dt>
-                    <dd className="mt-0.5 font-medium text-gray-700 break-words">
-                      {key === 'status' || key === 'health' ? (
-                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                          ['Healthy', 'Excellent', 'Active'].includes(item[key])
-                            ? 'bg-green-50 text-green-700'
-                            : ['Needs Attention', 'Good', 'Average', 'Stable'].includes(item[key])
-                            ? 'bg-amber-50 text-amber-700'
-                            : 'bg-red-50 text-red-700'
-                        }`}>
-                          {item[key] || '—'}
-                        </span>
-                      ) : (
-                        item[key] || '—'
-                      )}
-                    </dd>
                   </div>
+                </div>
+              );
+            })}
+            {!rows.length && (
+              <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-10 text-center text-gray-500">
+                No records found matching current criteria.
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="min-w-[760px] w-full text-left text-sm">
+              <thead className="bg-gray-50 text-gray-500">
+                <tr>
+                  {columns.map(([, label]) => (
+                    <th key={label} className="border-b border-gray-200 px-5 py-3.5 font-medium whitespace-nowrap">{label}</th>
+                  ))}
+                  <th className="border-b border-gray-200 px-5 py-3.5 font-medium whitespace-nowrap">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((item) => (
+                  <tr key={item.id || item.farmId || item.cropId} className="hover:bg-gray-50 transition-colors">
+                    {columns.map(([key]) => (
+                      <td key={key} className="border-b border-gray-100 px-5 py-3.5 max-w-[220px] truncate" title={String(item[key] || '')}>
+                        {key === 'status' || key === 'health' ? (
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            ['Healthy', 'Excellent', 'Active'].includes(item[key]) 
+                              ? 'bg-green-50 text-green-700' 
+                              : ['Needs Attention', 'Good', 'Average', 'Stable'].includes(item[key]) 
+                              ? 'bg-amber-50 text-amber-700' 
+                              : 'bg-red-50 text-red-700'
+                          }`}>
+                            {item[key] || '—'}
+                          </span>
+                        ) : (
+                          item[key] || '—'
+                        )}
+                      </td>
+                    ))}
+                    <td className="border-b border-gray-100 px-5 py-3.5">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          aria-label={`View ${resource.slice(0, -1)}`}
+                          onClick={() => { setRecord(item); setMode('view'); }}
+                          className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        {canEdit(item) && (
+                          <button
+                            type="button"
+                            aria-label={`Edit ${resource.slice(0, -1)}`}
+                            onClick={() => openEditModal(item)}
+                            className="rounded-lg border border-green-200 p-1.5 text-green-700 hover:bg-green-50 transition"
+                            title="Edit record"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        )}
+                        {canDelete(item) && (
+                          <button
+                            type="button"
+                            aria-label={`Delete ${resource.slice(0, -1)}`}
+                            onClick={() => { setRecord(item); setMode('delete'); }}
+                            className="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50 transition"
+                            title="Delete record"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
                 ))}
-              </dl>
-            </div>
-          ))}
-          {!rows.length && (
-            <p className="px-5 py-12 text-center text-gray-500 text-sm">
-              No records found matching current criteria.
-            </p>
-          )}
-        </div>
+                {!rows.length && (
+                  <tr>
+                    <td colSpan={columns.length + 1} className="px-5 py-12 text-center text-gray-500">
+                      No records found matching current criteria.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-3 p-4 text-sm border-t border-gray-100">
           <span className="text-gray-500">{visibleRecords.length} records</span>

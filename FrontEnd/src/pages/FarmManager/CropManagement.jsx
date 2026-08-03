@@ -10,6 +10,7 @@ import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { normalizeRole } from '../../config/roleRoutes';
 import { createCrop, deleteCrop, getCrops, updateCrop } from '../../api/cropApi';
+import { getFarms } from '../../api/farmApi';
 
 const cropSchema = z.object({
   name: z.string().min(2, 'Crop name is required'),
@@ -62,28 +63,66 @@ export const CropManagement = () => {
         crop.manager,
         crop.farmer,
         crop.farmerName,
+        crop.farmOwner,
+        crop.farmOwnerName,
+        crop.farmManager,
+        crop.ownerUsername,
       ];
 
-      for (const val of checkFields) {
-        if (val === undefined || val === null || val === '') continue;
-        const sVal = String(val).toLowerCase().trim();
-        if (
+      const matchesUserIdentity = (value) => {
+        if (value === undefined || value === null || value === '') return false;
+        const sVal = String(value).toLowerCase().trim();
+        return (
           (userIdStr && sVal === userIdStr) ||
           (userEmailStr && sVal === userEmailStr) ||
           (userNameStr && (sVal === userNameStr || sVal.includes(userNameStr) || userNameStr.includes(sVal)))
-        ) {
+        );
+      };
+
+      for (const val of checkFields) {
+        if (matchesUserIdentity(val)) {
           return true;
         }
       }
+
+      if (Array.isArray(farmsList)) {
+        const cropFarmId = String(crop.farmId || crop.farm_id || crop.farm?.id || crop.farm?.farmId || '').trim();
+        const cropFarmName = String(crop.farm || crop.farmName || '').toLowerCase().trim();
+
+        const matchedFarm = farmsList.find((farm) => {
+          const farmId = String(farm.id || farm.farmId || '').trim();
+          const farmName = String(farm.name || farm.farmName || '').toLowerCase().trim();
+          return (
+            (cropFarmId && farmId && cropFarmId === farmId) ||
+            (cropFarmName && farmName && farmName === cropFarmName)
+          );
+        });
+
+        if (matchedFarm) {
+          const farmOwnerId = String(matchedFarm.ownerId || matchedFarm.owner_id || matchedFarm.managerId || matchedFarm.userId || matchedFarm.user_id || '').toLowerCase();
+          const farmOwnerName = String(matchedFarm.owner || matchedFarm.manager || matchedFarm.farmerName || matchedFarm.farmer || matchedFarm.ownerUsername || '').toLowerCase().trim();
+          const farmOwnerEmail = String(matchedFarm.ownerEmail || '').toLowerCase().trim();
+
+          if (
+            (userIdStr && farmOwnerId === userIdStr) ||
+            (userNameStr && farmOwnerName.includes(userNameStr)) ||
+            (userEmailStr && (farmOwnerEmail.includes(userEmailStr) || farmOwnerName.includes(userEmailStr)))
+          ) {
+            return true;
+          }
+        }
+      }
+
       return false;
     },
-    [isAdmin, isGuest, user]
+    [isAdmin, isGuest, user, farmsList]
   );
 
   const canEditCrop = (crop) => isAdmin || (isManager && isOwnCrop(crop));
   const canDeleteCrop = (crop) => isAdmin || (isManager && isOwnCrop(crop));
 
   const [crops, setCrops] = useState([]);
+  const [farmsList, setFarmsList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -95,9 +134,11 @@ export const CropManagement = () => {
   });
 
   const loadCrops = useCallback(async () => {
-    const data = await getCrops();
-    setCrops(data);
-  }, []);
+    const [data, farms] = await Promise.all([getCrops(), getFarms()]);
+    setFarmsList(farms || []);
+    const visibleCrops = isAdmin || !isManager ? data : data.filter((crop) => isOwnCrop(crop));
+    setCrops(visibleCrops);
+  }, [isAdmin, isManager, isOwnCrop]);
 
   useEffect(() => {
     loadCrops();
