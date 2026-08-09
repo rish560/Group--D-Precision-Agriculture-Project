@@ -1,0 +1,3 @@
+import { CloudSun, Leaf, MapPin, Sprout, Wheat } from 'lucide-react';
+import { RoleWorkspace } from '../../components/dashboard/RoleWorkspace';
+export const FarmerDashboard = () => <RoleWorkspace eyebrow="Farmer workspace" title="My farm performance" summary="Monitor your farm portfolio, crop health, and soil information." stats={[{ title: 'My farms', value: '3', icon: MapPin }, { title: 'Active crops', value: '8', icon: Wheat }, { title: 'Soil health', value: '94/100', icon: Leaf }]} actions={[{ label: 'View My Farms', to: '/dashboard/farms', icon: MapPin }, { label: 'View Crops', to: '/dashboard/crops', icon: Wheat }, { label: 'Soil Details', to: '/dashboard/soil', icon: Leaf }]} />;
