@@ -20,6 +20,8 @@ public class FarmResponseDTO {
     private String areaUnit;
     private String waterSource;
     private String currentCrop;
+    private java.time.LocalDate sowingDate;
+    private java.time.LocalDate harvestingDate;
     private String status;
     private Long ownerId;
     private String ownerUsername;

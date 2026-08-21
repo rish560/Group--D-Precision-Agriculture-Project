@@ -1,3 +1,43 @@
-import { CloudSun, Leaf, MapPin, Wheat } from 'lucide-react';
+import { Eye, MapPin, Wheat } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { RoleWorkspace } from '../../components/dashboard/RoleWorkspace';
-export const GuestDashboard = () => <RoleWorkspace eyebrow="Guest workspace" title="Read-only farm overview" summary="Explore farm and crop records, and soil information." stats={[{ title: 'Farms available', value: '24', icon: MapPin }, { title: 'Crop records', value: '61', icon: Wheat }, { title: 'Soil health index', value: '94/100', icon: Leaf }]} actions={[{ label: 'View Farms', to: '/dashboard/farms', icon: MapPin }, { label: 'View Crops', to: '/dashboard/crops', icon: Wheat }, { label: 'Soil Details', to: '/dashboard/soil', icon: Leaf }]} />;
+import { getFarms } from '../../api/farmApi';
+
+export const GuestDashboard = () => {
+  const { t } = useLanguage();
+  const [counts, setCounts] = useState({ farms: null });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCounts = async () => {
+      const farmsResult = await getFarms().catch(() => null);
+      if (cancelled) return;
+
+      setCounts({ farms: farmsResult ? farmsResult.length : null });
+    };
+
+    loadCounts();
+    return () => { cancelled = true; };
+  }, []);
+
+  const formatCount = (value) => (value === null ? '—' : String(value));
+
+  return (
+    <RoleWorkspace
+      eyebrow={t('guestEyebrow')}
+      title={t('guestTitle')}
+      summary={t('guestSummary')}
+      heroIcon={Eye}
+      heroColor="amber"
+      stats={[
+        { title: t('statFarmsAvailable'), value: formatCount(counts.farms), icon: MapPin, to: '/dashboard/farms', color: 'amber' },
+      ]}
+      actions={[
+        { label: t('viewFarms'), to: '/dashboard/farms', icon: MapPin },
+        { label: t('viewCrops'), to: '/dashboard/crops', icon: Wheat },
+      ]}
+    />
+  );
+};

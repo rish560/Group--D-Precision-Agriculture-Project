@@ -1,12 +1,19 @@
+
 import { ArrowLeft, Eye, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { FarmWeatherBadge } from '../components/features/FarmWeatherBadge';
+import { FarmDetailView } from '../components/features/FarmDetailView';
+import { CropsList } from '../components/features/CropsList';
+import { CropDetailView } from '../components/features/CropDetailView';
+import { UsersList } from '../components/features/UsersList';
 import { LoadingState } from '../components/ui/LoadingState';
 import { normalizeRole } from '../config/roleRoutes';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 import appleImage from '../assets/crops/apple.jpg';
 import bananaImage from '../assets/crops/banana.jpg';
 import cornImage from '../assets/crops/corn.jpg';
@@ -15,10 +22,13 @@ import groundnutImage from '../assets/crops/groundnut.jpg';
 import mangoImage from '../assets/crops/mango.jpg';
 import mustardImage from '../assets/crops/mustard.jpg';
 import onionImage from '../assets/crops/onion.jpg';
+import potatoImage from '../assets/crops/potato.jpg';
+import riceImage from '../assets/crops/rice.jpg';
 import soybeanImage from '../assets/crops/soybean.jpg';
 import sugarCaneImage from '../assets/crops/SugarCane.jpg';
 import teaImage from '../assets/crops/tea.jpg';
 import tomatoImage from '../assets/crops/tomato.jpg';
+import wheatImage from '../assets/crops/wheat.jpg';
 
 // Import custom API modules
 import { getUsers, createUser, updateUser, deleteUser } from '../api/userApi';
@@ -31,34 +41,74 @@ const apis = {
   crops: { load: getCrops, create: createCrop, update: updateCrop, delete: deleteCrop },
 };
 
-const tableColumns = {
+const getTableColumns = (t) => ({
   farms: [
-    ['name', 'Farm Name'],
-    ['location', 'Location'],
-    ['area', 'Area'],
-    ['currentCrop', 'Crop'],
-    ['waterSource', 'Water Source'],
-    ['status', 'Status']
+    ['name', t('farmNameLabel')],
+    ['location', t('locationLabel')],
+    ['area', t('areaLabel').replace(/\s*\(.*\)$/, '')],
+    ['currentCrop', t('cropColumnLabel')],
+    ['waterSource', t('waterSourceLabel')],
+    ['status', t('statusLabel')]
   ],
   crops: [
-    ['name', 'Crop Name'],
-    ['farm', 'Farm'],
-    ['stage', 'Growth Stage'],
-    ['health', 'Crop Health'],
-    ['expectedYield', 'Expected Yield']
+    ['name', t('cropNameLabel')],
+    ['farm', t('farmColumnLabel')]
   ],
   users: [
-    ['fullName', 'Full Name'],
-    ['email', 'Email'],
-    ['role', 'Role'],
-    ['phoneNumber', 'Phone Number']  // ← was 'phone'; backend DTO field is 'phoneNumber'
+    ['fullName', t('fullNameLabel')],
+    ['email', t('emailLabel')],
+    ['role', t('roleLabel')],
+    ['phoneNumber', t('phoneNumberLabel')]  // ← was 'phone'; backend DTO field is 'phoneNumber'
   ]
+});
+
+const ROLE_LABEL_KEYS = {
+  Admin: 'adminRole',
+  'Farm Manager': 'farmManagerRole',
+  Guest: 'guestRole',
 };
 
-const filtersList = {
-  farms: ['Healthy', 'Needs Attention', 'Under Maintenance', 'Inactive'],
-  crops: ['Excellent', 'Good', 'Average', 'Poor', 'Diseased'],
-  users: ['Admin', 'Farm Manager', 'Guest']
+const getFiltersList = (t) => ({
+  farms: [
+    { value: 'Healthy', label: t('farmStatus_Healthy') },
+    { value: 'Needs Attention', label: t('farmStatus_Needs Attention') },
+    { value: 'Under Maintenance', label: t('farmStatus_Under Maintenance') },
+    { value: 'Inactive', label: t('farmStatus_Inactive') },
+  ],
+  crops: [
+    { value: 'Healthy', label: t('farmStatus_Healthy') },
+    { value: 'Needs Attention', label: t('farmStatus_Needs Attention') },
+    { value: 'Under Maintenance', label: t('farmStatus_Under Maintenance') },
+    { value: 'Inactive', label: t('farmStatus_Inactive') },
+  ],
+  users: [
+    { value: 'Admin', label: t('adminRole') },
+    { value: 'Farm Manager', label: t('farmManagerRole') },
+    { value: 'Guest', label: t('guestRole') },
+  ]
+});
+
+const TITLE_KEY_MAP = {
+  'Add and manage farms': 'addManageFarmsTitle',
+  'Add and manage crops': 'addManageCropsTitle',
+  'My farms': 'myFarmsTitle',
+  'Crop production': 'cropProductionTitle',
+  'Manage farms': 'manageFarmsTitle',
+  'Manage crops': 'manageCropsTitle',
+  'Manage users': 'manageUsersTitle',
+  'View admins': 'viewAdminsTitle',
+  'View farm managers': 'viewFarmManagersTitle',
+  'View guests': 'viewGuestsTitle',
+};
+
+const translateStatusValue = (t, resource, key, value) => {
+  if (!value) return value;
+  if (resource === 'farms' && key === 'status') return t(`farmStatus_${value}`);
+  if (resource === 'crops' && key === 'health') return t(`cropHealth_${value}`);
+  if (resource === 'crops' && key === 'status') return t(`cropStatus_${value}`);
+  if (resource === 'crops' && key === 'stage') return t(`growthStage_${value}`);
+  if (resource === 'users' && key === 'role') return ROLE_LABEL_KEYS[value] ? t(ROLE_LABEL_KEYS[value]) : value;
+  return value;
 };
 
 export const PRESET_CROPS = [
@@ -78,10 +128,13 @@ const getCropImage = (cropName) => {
   if (normalized.includes('mango')) return mangoImage;
   if (normalized.includes('mustard')) return mustardImage;
   if (normalized.includes('onion')) return onionImage;
+  if (normalized.includes('potato')) return potatoImage;
+  if (normalized.includes('rice')) return riceImage;
   if (normalized.includes('soybean') || normalized.includes('soy bean')) return soybeanImage;
   if (normalized.includes('sugarcane') || normalized.includes('sugar cane')) return sugarCaneImage;
   if (normalized.includes('tea')) return teaImage;
   if (normalized.includes('tomato')) return tomatoImage;
+  if (normalized.includes('wheat')) return wheatImage;
 
   return null;
 };
@@ -96,8 +149,9 @@ export const CROP_STATUSES = ['Active', 'Planned', 'Harvested', 'Inactive'];
 
 export const RecordManagement = ({ resource, canManage = false, roleFilter, title }) => {
   const apiSetup = apis[resource];
-  const columns = tableColumns[resource];
-  const filters = filtersList[resource];
+  const { t } = useLanguage();
+  const columns = useMemo(() => getTableColumns(t)[resource], [t, resource]);
+  const filters = useMemo(() => getFiltersList(t)[resource], [t, resource]);
 
   const location = useLocation();
   const isAddRoute = location.pathname.endsWith('add-farm') || location.pathname.endsWith('add-crop');
@@ -200,13 +254,15 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     [isAdmin, isGuest, user, resource, farmsList]
   );
 
-  const canAdd = resource === 'users' ? isAdmin : (isAdmin || isManager);
+  const canAdd = resource === 'crops' ? false : resource === 'users' ? isAdmin : (isAdmin || isManager);
 
   const canEdit = useCallback(
     (item) => {
       if (resource === 'users') return isAdmin;
       if (resource === 'farms') return isAdmin || (isManager && isOwnRecord(item));
-      if (resource === 'crops') return isAdmin || (isManager && isOwnRecord(item));
+      // Crops are now derived from each farm's "currentCrop" field, not a
+      // standalone editable record -- edit the farm instead to change its crop.
+      if (resource === 'crops') return false;
       return isAdmin;
     },
     [isAdmin, isManager, isOwnRecord, resource]
@@ -216,7 +272,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     (item) => {
       if (resource === 'users') return isAdmin;
       if (resource === 'farms') return isAdmin || (isManager && isOwnRecord(item));
-      if (resource === 'crops') return isAdmin || (isManager && isOwnRecord(item));
+      if (resource === 'crops') return false;
       return isAdmin;
     },
     [isAdmin, isManager, isOwnRecord, resource]
@@ -235,10 +291,15 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     } catch {}
   }, []);
 
-  // Initial load of farms list
+  // Farms list is only needed to match a crop to its farm (My Crops ownership
+  // check). Fetching it on farms/users pages was wasted, redundant work --
+  // farms pages already fetch farms via loadRecords(), so this was doubling
+  // the network/DB round trip on every "View Farms" / "Add Farm" page load.
   useEffect(() => {
-    loadFarmsList();
-  }, [loadFarmsList]);
+    if (resource === 'crops') {
+      loadFarmsList();
+    }
+  }, [resource, loadFarmsList]);
 
   // Re-fetch the latest farms from the backend whenever the crops form becomes
   // active (either via the add-crop route or by switching mode to create/edit).
@@ -258,6 +319,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         name: '',
         location: '',
         currentCrop: '',
+        sowingDate: '',
+        harvestingDate: '',
         area: '',
         waterSource: '',
         status: 'Healthy',
@@ -318,6 +381,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         name: item.name || item.farmName || '',
         location: item.location || '',
         currentCrop: item.currentCrop || '',
+        sowingDate: item.sowingDate || '',
+        harvestingDate: item.harvestingDate || '',
         area: item.area || (item.numericArea != null ? `${item.numericArea} ${item.areaUnit || 'Acres'}` : ''),
         waterSource: item.waterSource || '',
         status: item.status || 'Healthy',
@@ -345,14 +410,44 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
   const loadRecords = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiSetup.load();
+      let data;
+      if (resource === 'crops') {
+        // "Crops" are entered as a field on the Farm itself (currentCrop) --
+        // there is no separate crop-creation flow, so derive the crop list
+        // straight from farms instead of the (permanently empty) crops table.
+        const farms = await getFarms();
+        data = farms
+          .filter((farm) => farm.currentCrop && farm.currentCrop.trim())
+          .map((farm) => ({
+            id: `crop-${farm.id}`,
+            cropId: farm.id,
+            farmId: farm.id,
+            name: farm.currentCrop,
+            crop: farm.currentCrop,
+            farm: farm.name,
+            farmName: farm.name,
+            location: farm.location,
+            sowingDate: farm.sowingDate,
+            harvestingDate: farm.harvestingDate,
+            status: farm.status,
+            ownerId: farm.ownerId,
+            owner: farm.owner,
+            ownerUsername: farm.owner,
+            manager: farm.manager,
+            farmer: farm.farmer,
+            farmerName: farm.farmerName,
+          }));
+      } else {
+        data = await apiSetup.load();
+      }
       setRecords(data);
     } catch {
-      addToast(`Unable to load ${resource}.`, 'error');
+      const loadErrorMsg = resource === 'farms' ? t('unableToLoadFarmsToast') : resource === 'crops' ? t('unableToLoadCropsToast') : resource === 'users' ? t('unableToLoadUsersToast') : `Unable to load ${resource}.`;
+      addToast(loadErrorMsg, 'error');
     } finally {
       setLoading(false);
     }
-  }, [addToast, resource, apiSetup]);
+  }, [addToast, resource, apiSetup, t]);
 
   useEffect(() => {
     loadRecords();
@@ -362,7 +457,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     setPage(1);
   }, [resource, roleFilter, filter, search]);
 
-  const visibleRecords = useMemo(() => {
+  const scopedRecords = useMemo(() => {
     if (!records) return [];
     let list = records;
 
@@ -396,6 +491,26 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
       const normTargetRole = normalizeRole(roleFilter);
       list = list.filter((r) => normalizeRole(r.role) === normTargetRole || r.role === roleFilter);
     }
+    return list;
+  }, [records, roleFilter, resource, title, isManager, isAdmin, user, isOwnRecord]);
+
+  // Segment key: 'status' for farms, 'health' for crops -- drives the segmented tabs below.
+  // Segmentation tabs are an Admin-only overview feature -- Farm Manager and
+  // Guest dashboards stay simple (no status tabs above their farms/crops list).
+  const segmentKey = isAdmin && (resource === 'farms' || resource === 'crops') ? 'status' : null;
+
+  const segmentCounts = useMemo(() => {
+    if (!segmentKey) return {};
+    return scopedRecords.reduce((acc, r) => {
+      const key = r[segmentKey] || 'Unknown';
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+  }, [scopedRecords, segmentKey]);
+
+  const visibleRecords = useMemo(() => {
+    let list = scopedRecords;
+
     if (filter !== 'All') {
       const normFilter = normalizeRole(filter);
       list = list.filter((r) => r.status === filter || r.health === filter || normalizeRole(r.role) === normFilter || r.role === filter);
@@ -407,7 +522,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
       );
     }
     return list;
-  }, [records, roleFilter, filter, search, resource, title, isManager, isAdmin, user, farmsList, isOwnRecord]);
+  }, [scopedRecords, filter, search]);
 
   const PAGE_SIZE = 6;
   const pages = Math.max(1, Math.ceil(visibleRecords.length / PAGE_SIZE));
@@ -431,27 +546,27 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
 
       if (resource === 'farms') {
         if (!savePayload.name || !savePayload.name.trim()) {
-          addToast('Farm Name is required.', 'error');
+          addToast(t('farmNameRequiredToast'), 'error');
           setSaving(false);
           return;
         }
         if (!savePayload.location || !savePayload.location.trim()) {
-          addToast('Location is required.', 'error');
+          addToast(t('locationRequiredToast'), 'error');
           setSaving(false);
           return;
         }
         if (!savePayload.currentCrop || !savePayload.currentCrop.trim()) {
-          addToast('Crop / Current Crop is required.', 'error');
+          addToast(t('cropCurrentCropRequiredToast'), 'error');
           setSaving(false);
           return;
         }
         if (!savePayload.area || !String(savePayload.area).trim()) {
-          addToast('Area is required.', 'error');
+          addToast(t('areaRequiredToast'), 'error');
           setSaving(false);
           return;
         }
         if (!savePayload.waterSource || !savePayload.waterSource.trim()) {
-          addToast('Water Source is required.', 'error');
+          addToast(t('waterSourceRequiredToast'), 'error');
           setSaving(false);
           return;
         }
@@ -461,7 +576,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         const areaMatch = areaText.match(/([\d.]+)\s*(.*)/);
         const numArea = areaMatch ? parseFloat(areaMatch[1]) : NaN;
         if (isNaN(numArea) || numArea <= 0) {
-          addToast('Area must include a valid number (e.g. 48 acres).', 'error');
+          addToast(t('areaInvalidToast'), 'error');
           setSaving(false);
           return;
         }
@@ -485,37 +600,37 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         const finalCropName = (savePayload.name || '').trim();
 
         if (!finalCropName) {
-          addToast('Crop Name is required.', 'error');
+          addToast(t('cropNameRequiredToast'), 'error');
           setSaving(false);
           return;
         }
         if (finalCropName.length > 100) {
-          addToast('Crop Name must be 100 characters or fewer.', 'error');
+          addToast(t('cropNameTooLongToast'), 'error');
           setSaving(false);
           return;
         }
         if (!savePayload.farmId) {
-          addToast('Assigned Farm is required.', 'error');
+          addToast(t('assignedFarmRequiredToast'), 'error');
           setSaving(false);
           return;
         }
         if (!savePayload.stage) {
-          addToast('Growth Stage is required.', 'error');
+          addToast(t('growthStageRequiredToast'), 'error');
           setSaving(false);
           return;
         }
         if (!savePayload.health) {
-          addToast('Crop Health is required.', 'error');
+          addToast(t('cropHealthRequiredToast'), 'error');
           setSaving(false);
           return;
         }
         if (!savePayload.plantingDate) {
-          addToast('Planting Date is required.', 'error');
+          addToast(t('plantingDateRequiredToast'), 'error');
           setSaving(false);
           return;
         }
         if (!savePayload.expectedYield || !String(savePayload.expectedYield).trim()) {
-          addToast('Expected Yield is required.', 'error');
+          addToast(t('expectedYieldRequiredToast'), 'error');
           setSaving(false);
           return;
         }
@@ -539,12 +654,21 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
       } else {
         await apiSetup.update(record.id || record.farmId || record.cropId, savePayload);
       }
-      addToast(`${resource.slice(0, -1)} ${mode === 'create' ? 'created' : 'updated'} successfully.`, 'success');
+      addToast(
+        resource === 'farms'
+          ? (mode === 'create' ? t('farmCreatedToast') : t('farmUpdatedToast'))
+          : resource === 'crops'
+          ? (mode === 'create' ? t('cropCreatedToast') : t('cropUpdatedToast'))
+          : resource === 'users'
+          ? (mode === 'create' ? t('userCreatedToast') : t('userUpdatedToast'))
+          : `${resource.slice(0, -1)} ${mode === 'create' ? 'created' : 'updated'} successfully.`,
+        'success',
+      );
       setMode(null);
       await loadRecords();
     } catch (err) {
       const backendMessage = err?.response?.data?.message;
-      addToast(backendMessage || 'Unable to save record.', 'error');
+      addToast(backendMessage || t('unableToSaveRecordToast'), 'error');
     } finally {
       setSaving(false);
     }
@@ -554,36 +678,66 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
     setSaving(true);
     try {
       await apiSetup.delete(record.id || record.farmId || record.cropId);
-      addToast(`${resource.slice(0, -1)} deleted successfully.`, 'success');
+      addToast(
+        resource === 'farms' ? t('farmDeletedToast') : resource === 'crops' ? t('cropDeletedToast') : resource === 'users' ? t('userDeletedToast') : `${resource.slice(0, -1)} deleted successfully.`,
+        'success',
+      );
       setMode(null);
       await loadRecords();
     } catch {
-      addToast(`Unable to delete record.`, 'error');
+      addToast(t('unableToDeleteRecordToast'), 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <LoadingState label={`Loading ${title || `${resource} records`}...`} />;
+  if (loading) return <LoadingState label={resource === 'farms' ? t('loadingFarmsLabel') : resource === 'crops' ? t('loadingCropsLabel') : resource === 'users' ? t('loadingUsersLabel') : `Loading ${title || `${resource} records`}...`} />;
 
   if (mode) {
     return (
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-black">
           <div className="flex items-center gap-3">
             <Button
               variant="secondary"
               onClick={() => setMode(null)}
               className="gap-1.5 text-xs px-3 py-1.5"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> View all {resource}
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {resource === 'farms' ? t('viewAllFarms') : resource === 'crops' ? t('viewAllCrops') : `View all ${resource}`}
             </Button>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-green-600">
-                {mode === 'delete' ? 'Confirm deletion' : `${mode} ${resource.slice(0, -1)}`}
+                {mode === 'delete'
+                  ? t('confirmDeletionLabel')
+                  : mode === 'create' && resource === 'farms'
+                  ? t('createFarmEyebrow')
+                  : mode === 'create' && resource === 'crops'
+                  ? t('createCropEyebrow')
+                  : mode === 'edit' && resource === 'farms'
+                  ? t('editFarmEyebrow')
+                  : mode === 'view' && resource === 'farms'
+                  ? t('viewFarmEyebrow')
+                  : mode === 'edit' && resource === 'crops'
+                  ? t('editCropEyebrow')
+                  : mode === 'view' && resource === 'crops'
+                  ? t('viewCropEyebrow')
+                  : mode === 'edit' && resource === 'users'
+                  ? t('editUserEyebrow')
+                  : mode === 'view' && resource === 'users'
+                  ? t('viewUserEyebrow')
+                  : `${mode} ${resource.slice(0, -1)}`}
               </p>
-              <h2 className="text-xl font-bold text-gray-900">
-                {mode === 'create' ? `Add ${resource.slice(0, -1)}` : (record.farmerName || record.name || record.fullName || 'Record Details')}
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                {mode === 'create' && resource === 'farms'
+                  ? t('addFarm')
+                  : mode === 'create' && resource === 'crops'
+                  ? t('addCrop')
+                  : mode === 'create' && resource === 'users'
+                  ? t('addUserButton')
+                  : mode === 'create'
+                  ? `Add ${resource.slice(0, -1)}`
+                  : (record.farmerName || record.name || record.fullName || t('recordDetailsFallback'))}
               </h2>
             </div>
           </div>
@@ -592,133 +746,87 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
         <Card>
           {mode === 'delete' && canDelete(record) ? (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Are you sure you want to delete this {resource.slice(0, -1)} record? This action cannot be undone.
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {resource === 'farms' ? t('deleteConfirmFarmMessage') : resource === 'crops' ? t('deleteConfirmCropMessage') : resource === 'users' ? t('deleteConfirmUserMessage') : `Are you sure you want to delete this ${resource.slice(0, -1)} record? This action cannot be undone.`}
               </p>
               <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
-                <Button variant="secondary" onClick={() => setMode(null)}>Cancel</Button>
+                <Button variant="secondary" onClick={() => setMode(null)}>{t('cancelButton')}</Button>
                 <Button variant="danger" disabled={saving} onClick={handleRemove}>
-                  {saving ? 'Deleting...' : 'Delete'}
+                  {saving ? t('deletingButton') : t('deleteButton')}
                 </Button>
               </div>
             </div>
           ) : mode === 'view' ? (
-            <div className="space-y-6">
-              <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {resource === 'farms' ? (
-                  <>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Farmer Name</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.farmerName || record.owner || 'Ramesh Kumar'}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Location</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.location}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Crop / Current Crop</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.currentCrop || '—'}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Area</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.area}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Water Source</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.waterSource}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Status</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.status}</dd>
-                    </div>
-                  </>
-                ) : resource === 'crops' ? (
-                  <>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Farmer Name</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.farmerName || record.farmer || 'Ramesh Kumar'}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Crop</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.name || record.cropName}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Growth Stage</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.stage}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Crop Health</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.health}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Planting Date</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.plantingDate || '—'}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Expected Yield</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.expectedYield}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Status</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.status || '—'}</dd>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Full Name</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.fullName}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Email</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.email}</dd>
-                    </div>
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                      <dt className="text-xs font-semibold uppercase text-gray-400">Role</dt>
-                      <dd className="mt-1 font-medium text-gray-900 text-sm">{record.role}</dd>
-                    </div>
-                  </>
-                )}
-              </dl>
-              <div className="flex justify-end border-t border-gray-100 pt-4">
-                <Button variant="secondary" onClick={() => setMode(null)}>Back to list</Button>
+            resource === 'farms' ? (
+              <div className="space-y-6">
+                <FarmDetailView record={record} t={t} translateStatusValue={translateStatusValue} />
+                <div className="flex justify-end border-t border-gray-100 pt-4">
+                  <Button variant="secondary" onClick={() => setMode(null)}>{t('backToListButton')}</Button>
+                </div>
               </div>
-            </div>
+            ) : resource === 'crops' ? (
+              <div className="space-y-6">
+                <CropDetailView record={record} t={t} />
+                <div className="flex justify-end border-t border-gray-100 pt-4">
+                  <Button variant="secondary" onClick={() => setMode(null)}>{t('backToListButton')}</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5 dark:border-slate-800 dark:bg-slate-900">
+                      <dt className="text-xs font-semibold uppercase text-gray-400">{t('fullNameLabel')}</dt>
+                      <dd className="mt-1 font-medium text-gray-900 text-sm dark:text-gray-100">{record.fullName}</dd>
+                    </div>
+                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5 dark:border-slate-800 dark:bg-slate-900">
+                      <dt className="text-xs font-semibold uppercase text-gray-400">{t('emailLabel')}</dt>
+                      <dd className="mt-1 font-medium text-gray-900 text-sm dark:text-gray-100">{record.email}</dd>
+                    </div>
+                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-3.5 dark:border-slate-800 dark:bg-slate-900">
+                      <dt className="text-xs font-semibold uppercase text-gray-400">{t('roleLabel')}</dt>
+                      <dd className="mt-1 font-medium text-gray-900 text-sm dark:text-gray-100">{translateStatusValue(t, 'users', 'role', record.role) || record.role}</dd>
+                    </div>
+                </dl>
+                <div className="flex justify-end border-t border-gray-100 pt-4">
+                  <Button variant="secondary" onClick={() => setMode(null)}>{t('backToListButton')}</Button>
+                </div>
+              </div>
+            )
           ) : (
             <form onSubmit={handleSave} className="space-y-6">
               {resource === 'farms' && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Farm Name <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('farmNameLabel')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={record.name || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, name: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="e.g. Green Valley Farm"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
+                      placeholder={t('farmNamePlaceholder')}
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Location <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('locationLabel')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={record.location || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, location: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="e.g. Coimbatore, India"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
+                      placeholder={t('locationPlaceholder')}
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Crop / Current Crop <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('cropCurrentCropLabel')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -726,8 +834,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                       list="preset-crops-farm"
                       value={record.currentCrop || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, currentCrop: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="e.g. Tomato"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
+                      placeholder={t('cropCurrentCropPlaceholder')}
                     />
                     <datalist id="preset-crops-farm">
                       {PRESET_CROPS.map((c) => (
@@ -737,22 +845,48 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Area (e.g. 48 acres) <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('sowingDateLabel')}
+                    </label>
+                    <input
+                      type="date"
+                      value={record.sowingDate || ''}
+                      max={record.harvestingDate || undefined}
+                      onChange={(e) => setRecord((cur) => ({ ...cur, sowingDate: e.target.value }))}
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('harvestingDateLabel')}
+                    </label>
+                    <input
+                      type="date"
+                      value={record.harvestingDate || ''}
+                      min={record.sowingDate || undefined}
+                      onChange={(e) => setRecord((cur) => ({ ...cur, harvestingDate: e.target.value }))}
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('areaLabel')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={record.area || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, area: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="e.g. 48 acres"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
+                      placeholder={t('areaPlaceholder')}
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Water Source <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('waterSourceLabel')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -760,8 +894,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                       list="water-sources"
                       value={record.waterSource || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, waterSource: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="e.g. river"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
+                      placeholder={t('waterSourcePlaceholder')}
                     />
                     <datalist id="water-sources">
                       {WATER_SOURCES.map((ws) => (
@@ -771,16 +905,16 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Status
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('statusLabel')}
                     </label>
                     <select
                       value={record.status || 'Healthy'}
                       onChange={(e) => setRecord((cur) => ({ ...cur, status: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
                     >
                       {FARM_STATUSES.map((st) => (
-                        <option key={st} value={st}>{st}</option>
+                        <option key={st} value={st}>{t(`farmStatus_${st}`)}</option>
                       ))}
                     </select>
                   </div>
@@ -790,8 +924,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
               {resource === 'crops' && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Crop Name <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('cropNameLabel')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -800,8 +934,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                       list="preset-crops-crop"
                       value={record.name || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, name: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="e.g. Rice, Wheat, Tomato"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
+                      placeholder={t('cropNamePlaceholder')}
                     />
                     <datalist id="preset-crops-crop">
                       {PRESET_CROPS.map((c) => (
@@ -811,8 +945,8 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Assigned Farm <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('assignedFarmLabel')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       required
@@ -825,9 +959,9 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                           farmerName: selectedFarm ? (selectedFarm.farmerName || selectedFarm.farmer || selectedFarm.owner) : cur.farmerName
                         }));
                       }}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
                     >
-                      <option value="" disabled>Select Farm</option>
+                      <option value="" disabled>{t('selectFarmOption')}</option>
                       {farmsList.map((f) => (
                         <option key={f.id || f.farmId} value={f.id || f.farmId}>
                           {f.name || f.farmName} ({f.location || 'Kanpur'})
@@ -837,75 +971,75 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Growth Stage <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('growthStageLabel')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       required
                       value={record.stage || 'Vegetative'}
                       onChange={(e) => setRecord((cur) => ({ ...cur, stage: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
                     >
                       {GROWTH_STAGES.map((stg) => (
-                        <option key={stg} value={stg}>{stg}</option>
+                        <option key={stg} value={stg}>{t(`growthStage_${stg}`)}</option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Crop Health <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('cropHealthLabel')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       required
                       value={record.health || 'Excellent'}
                       onChange={(e) => setRecord((cur) => ({ ...cur, health: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
                     >
                       {CROP_HEALTHS.map((h) => (
-                        <option key={h} value={h}>{h}</option>
+                        <option key={h} value={h}>{t(`cropHealth_${h}`)}</option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Planting Date <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('plantingDateLabel')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
                       required
                       value={record.plantingDate || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, plantingDate: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Expected Yield <span className="text-red-500">*</span>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('expectedYieldLabel')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={record.expectedYield || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, expectedYield: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white"
-                      placeholder="Enter expected yield"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
+                      placeholder={t('expectedYieldPlaceholder')}
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      Status
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('statusLabel')}
                     </label>
                     <select
                       value={record.status || 'Active'}
                       onChange={(e) => setRecord((cur) => ({ ...cur, status: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100 dark:focus:border-green-400 dark:focus:bg-slate-900"
                     >
                       {CROP_STATUSES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
+                        <option key={s} value={s}>{t(`cropStatus_${s}`)}</option>
                       ))}
                     </select>
                   </div>
@@ -915,45 +1049,45 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
               {resource === 'users' && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Full Name *</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('fullNameLabel')} *</label>
                     <input
                       type="text"
                       required
                       value={record.fullName || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, fullName: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Email *</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('emailLabel')} *</label>
                     <input
                       type="email"
                       required
                       value={record.email || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, email: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Role *</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('roleLabel')} *</label>
                     <select
                       required
                       value={record.role || 'Farm Manager'}
                       onChange={(e) => setRecord((cur) => ({ ...cur, role: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100"
                     >
-                      <option value="Admin">Admin</option>
-                      <option value="Farm Manager">Farm Manager</option>
-                      <option value="Guest">Guest</option>
+                      <option value="Admin">{t('adminRole')}</option>
+                      <option value="Farm Manager">{t('farmManagerRole')}</option>
+                      <option value="Guest">{t('guestRole')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Phone</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t('phoneLabel')}</label>
                     <input
                       type="text"
                       value={record.phoneNumber || ''}
                       onChange={(e) => setRecord((cur) => ({ ...cur, phoneNumber: e.target.value }))}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-gray-100"
                     />
                   </div>
                 </div>
@@ -961,10 +1095,18 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
 
               <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
                 <Button variant="secondary" type="button" onClick={() => setMode(null)}>
-                  Cancel
+                  {t('cancelButton')}
                 </Button>
                 <Button type="submit" disabled={saving} className="px-6">
-                  {saving ? 'Saving...' : `Save ${resource.slice(0, -1)}`}
+                  {saving
+                    ? t('savingButton')
+                    : resource === 'farms'
+                    ? t('saveFarmButton')
+                    : resource === 'crops'
+                    ? t('saveCropButton')
+                    : resource === 'users'
+                    ? t('saveUserButton')
+                    : `Save ${resource.slice(0, -1)}`}
                 </Button>
               </div>
             </form>
@@ -976,46 +1118,91 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
 
   return (
     <div className="space-y-6">
+      {segmentKey && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setFilter('All')}
+            className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
+              filter === 'All'
+                ? 'border-emerald-600 bg-emerald-600 text-white'
+                : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-gray-400'
+            }`}
+          >
+            {t('allFilterOption')} <span className="opacity-75">({scopedRecords.length})</span>
+          </button>
+          {filters.map((item) => {
+            const value = typeof item === 'object' ? item.value : item;
+            const label = typeof item === 'object' ? item.label : item;
+            const count = segmentCounts[value] || 0;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilter(value)}
+                className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
+                  filter === value
+                    ? 'border-emerald-600 bg-emerald-600 text-white'
+                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-gray-400'
+                }`}
+              >
+                {label} <span className="opacity-75">({count})</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <Card className="space-y-5">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-green-600">Operations center</p>
-            <h2 className="mt-1 text-2xl font-semibold text-gray-900">{title || `${resource} management`}</h2>
-            <p className="mt-1 text-sm text-gray-500">Search, filter, view, and manage records securely.</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-green-600">{t('operationsCenterEyebrow')}</p>
+            <h2 className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{TITLE_KEY_MAP[title] ? t(TITLE_KEY_MAP[title]) : (title || `${resource} management`)}</h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">{t('recordsSubtitle')}</p>
           </div>
           {canAdd && (
             <Button onClick={openCreateModal}>
-              <Plus className="mr-2 h-4 w-4" />Add {resource.slice(0, -1)}
+              <Plus className="mr-2 h-4 w-4" />
+              {resource === 'farms' ? t('addFarm') : resource === 'crops' ? t('addCrop') : resource === 'users' ? t('addUserButton') : `Add ${resource.slice(0, -1)}`}
             </Button>
           )}
         </div>
         <div className="grid gap-3 md:grid-cols-[1fr_12rem]">
-          <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700">
+          <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300">
             <Search className="h-4 w-4 text-gray-400" />
             <input
               aria-label={`Search ${resource}`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-transparent outline-none placeholder:text-gray-400"
-              placeholder={`Search ${resource}...`}
+              placeholder={resource === 'farms' ? t('searchFarmsPlaceholder') : resource === 'crops' ? t('searchCropsPlaceholder') : resource === 'users' ? t('searchUsersPlaceholder') : `Search ${resource}...`}
             />
           </label>
           <select
             aria-label={`Filter ${resource}`}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none"
+            className="rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-700 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-gray-300"
           >
-            <option>All</option>
+            <option value="All">{t('allFilterOption')}</option>
             {filters.map((item) => (
-              <option key={item}>{item}</option>
+              typeof item === 'object'
+                ? <option key={item.value} value={item.value}>{item.label}</option>
+                : <option key={item}>{item}</option>
             ))}
           </select>
         </div>
       </Card>
 
       <Card className="p-0 overflow-hidden">
-        {resource === 'farms' ? (
+        {resource === 'crops' ? (
+          <CropsList
+            rows={rows}
+            getCropImage={getCropImage}
+            onView={(item) => { setRecord(item); setMode('view'); }}
+            t={t}
+          />
+        ) : resource === 'farms' ? (
           <div className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-3">
             {rows.map((item) => {
               const statusTone = ['Healthy', 'Excellent', 'Active'].includes(item.status)
@@ -1049,7 +1236,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
               }
 
               return (
-                <div key={item.id || item.farmId || item.cropId} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
+                <div key={item.id || item.farmId || item.cropId} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-black">
                   <div className={`relative flex h-48 items-center justify-center overflow-hidden ${cropImage ? 'bg-gray-100' : `bg-gradient-to-br ${cropVisual.accent}`}`}>
                     {cropImage ? (
                       <img src={cropImage} alt={cropName || 'Crop'} className="absolute inset-0 h-full w-full object-cover" />
@@ -1062,13 +1249,13 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                     )}
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
                     <div className="relative z-10 flex h-full w-full items-end justify-start p-4">
-                      <div className="rounded-2xl border border-white/70 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-sm">
+                      <div className="rounded-2xl border border-white/70 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-sm dark:border-slate-800/70 dark:bg-black/80">
                         {cropImage ? (
-                          <p className="text-sm font-semibold text-gray-700">{cropName || item.name || item.farmName || 'Farm'}</p>
+                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{cropName || item.name || item.farmName || t('farmColumnLabel')}</p>
                         ) : (
                           <>
                             <div className="text-4xl leading-none">{cropVisual.emoji}</div>
-                            <p className="mt-1 text-sm font-semibold text-gray-700">{item.name || item.farmName || 'Farm'}</p>
+                            <p className="mt-1 text-sm font-semibold text-gray-700 dark:text-gray-300">{item.name || item.farmName || t('farmColumnLabel')}</p>
                           </>
                         )}
                       </div>
@@ -1077,25 +1264,29 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                   <div className="space-y-3 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-lg font-semibold text-gray-900">{item.name || item.farmName || 'Untitled Farm'}</p>
-                        <p className="text-sm text-gray-500">{item.location || 'Location not added'}</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{item.name || item.farmName || t('farmFallbackName')}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500">{item.location || t('locationNotAddedFallback')}</p>
                       </div>
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${statusTone}`}>
-                        {item.status || 'Healthy'}
+                        {translateStatusValue(t, 'farms', 'status', item.status || 'Healthy')}
                       </span>
                     </div>
 
-                    <div className="grid gap-2 text-sm text-gray-600">
-                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-                        <span>Crop</span>
+                    {resource === 'farms' && item.location && (
+                      <FarmWeatherBadge location={item.location} />
+                    )}
+
+                    <div className="grid gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-slate-800">
+                        <span>{t('cropColumnLabel')}</span>
                         <span className="font-medium text-gray-800">{item.currentCrop || '—'}</span>
                       </div>
-                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-                        <span>Area</span>
+                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-slate-800">
+                        <span>{t('areaLabel').replace(/\s*\(.*\)$/, '')}</span>
                         <span className="font-medium text-gray-800">{item.area || '—'}</span>
                       </div>
-                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-                        <span>Water</span>
+                      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 dark:bg-slate-800">
+                        <span>{t('waterSourceLabel')}</span>
                         <span className="font-medium text-gray-800">{item.waterSource || '—'}</span>
                       </div>
                     </div>
@@ -1105,9 +1296,9 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                         type="button"
                         aria-label={`View ${resource.slice(0, -1)}`}
                         onClick={() => { setRecord(item); setMode('view'); }}
-                        className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                        className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-slate-700 dark:text-gray-400 dark:hover:bg-slate-800"
                       >
-                        View
+                        {t('viewButton')}
                       </button>
                       {canEdit(item) && (
                         <button
@@ -1116,7 +1307,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                           onClick={() => openEditModal(item)}
                           className="flex-1 rounded-lg border border-green-200 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-50"
                         >
-                          Edit
+                          {t('editButton')}
                         </button>
                       )}
                       {canDelete(item) && (
@@ -1126,7 +1317,7 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
                           onClick={() => { setRecord(item); setMode('delete'); }}
                           className="flex-1 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
                         >
-                          Delete
+                          {t('deleteButton')}
                         </button>
                       )}
                     </div>
@@ -1135,99 +1326,32 @@ export const RecordManagement = ({ resource, canManage = false, roleFilter, titl
               );
             })}
             {!rows.length && (
-              <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-10 text-center text-gray-500">
-                No records found matching current criteria.
+              <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-10 text-center text-gray-500 dark:border-slate-700 dark:bg-slate-900 dark:text-gray-500">
+                {t('noRecordsFoundMessage')}
               </div>
             )}
           </div>
         ) : (
-          <div className="hidden sm:block overflow-x-auto">
-            <table className="min-w-[760px] w-full text-left text-sm">
-              <thead className="bg-gray-50 text-gray-500">
-                <tr>
-                  {columns.map(([, label]) => (
-                    <th key={label} className="border-b border-gray-200 px-5 py-3.5 font-medium whitespace-nowrap">{label}</th>
-                  ))}
-                  <th className="border-b border-gray-200 px-5 py-3.5 font-medium whitespace-nowrap">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((item) => (
-                  <tr key={item.id || item.farmId || item.cropId} className="hover:bg-gray-50 transition-colors">
-                    {columns.map(([key]) => (
-                      <td key={key} className="border-b border-gray-100 px-5 py-3.5 max-w-[220px] truncate" title={String(item[key] || '')}>
-                        {key === 'status' || key === 'health' ? (
-                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            ['Healthy', 'Excellent', 'Active'].includes(item[key]) 
-                              ? 'bg-green-50 text-green-700' 
-                              : ['Needs Attention', 'Good', 'Average', 'Stable'].includes(item[key]) 
-                              ? 'bg-amber-50 text-amber-700' 
-                              : 'bg-red-50 text-red-700'
-                          }`}>
-                            {item[key] || '—'}
-                          </span>
-                        ) : (
-                          item[key] || '—'
-                        )}
-                      </td>
-                    ))}
-                    <td className="border-b border-gray-100 px-5 py-3.5">
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          aria-label={`View ${resource.slice(0, -1)}`}
-                          onClick={() => { setRecord(item); setMode('view'); }}
-                          className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        {canEdit(item) && (
-                          <button
-                            type="button"
-                            aria-label={`Edit ${resource.slice(0, -1)}`}
-                            onClick={() => openEditModal(item)}
-                            className="rounded-lg border border-green-200 p-1.5 text-green-700 hover:bg-green-50 transition"
-                            title="Edit record"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                        )}
-                        {canDelete(item) && (
-                          <button
-                            type="button"
-                            aria-label={`Delete ${resource.slice(0, -1)}`}
-                            onClick={() => { setRecord(item); setMode('delete'); }}
-                            className="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50 transition"
-                            title="Delete record"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {!rows.length && (
-                  <tr>
-                    <td colSpan={columns.length + 1} className="px-5 py-12 text-center text-gray-500">
-                      No records found matching current criteria.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <UsersList
+            rows={rows}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            onEdit={openEditModal}
+            onDelete={(item) => { setRecord(item); setMode('delete'); }}
+            roleLabel={(role) => translateStatusValue(t, 'users', 'role', role) || role}
+            t={t}
+          />
         )}
 
         <div className="flex items-center justify-between gap-3 p-4 text-sm border-t border-gray-100">
-          <span className="text-gray-500">{visibleRecords.length} records</span>
+          <span className="text-gray-500 dark:text-gray-500">{visibleRecords.length} {t('recordsCountLabel')}</span>
           <div className="flex items-center gap-2">
             <Button variant="secondary" disabled={page === 1} onClick={() => setPage((v) => v - 1)} className="px-3 py-1.5 text-xs">
-              Previous
+              {t('previousButton')}
             </Button>
-            <span className="text-gray-600 text-xs font-medium">Page {page} of {pages}</span>
+            <span className="text-gray-600 text-xs font-medium dark:text-gray-400">{t('pageLabel')} {page} {t('ofLabel')} {pages}</span>
             <Button variant="secondary" disabled={page === pages} onClick={() => setPage((v) => v + 1)} className="px-3 py-1.5 text-xs">
-              Next
+              {t('nextButton')}
             </Button>
           </div>
         </div>

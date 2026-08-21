@@ -54,6 +54,12 @@ public class Farm {
     @Column(name = "current_crop", length = 150)
     private String currentCrop;
 
+    @Column(name = "sowing_date")
+    private java.time.LocalDate sowingDate;
+
+    @Column(name = "harvesting_date")
+    private java.time.LocalDate harvestingDate;
+
     @Column(length = 50)
     private String status;
 

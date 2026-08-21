@@ -93,7 +93,7 @@ export const Register = () => {
       {/* ── Left panel — image ── */}
       <div className="relative hidden w-2/5 lg:block">
         <img
-          src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1800&q=80"
+          src="https://images.unsplash.com/photo-1760635165251-5a3a81425a89?auto=format&fit=crop&w=1800&q=80"
           alt="Farming landscape"
           className="absolute inset-0 h-full w-full object-cover"
         />

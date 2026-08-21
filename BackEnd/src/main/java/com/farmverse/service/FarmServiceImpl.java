@@ -43,6 +43,8 @@ public class FarmServiceImpl implements FarmService {
                 .areaUnit(farmRequestDTO.getAreaUnit() != null ? farmRequestDTO.getAreaUnit() : "Acres")
                 .waterSource(farmRequestDTO.getWaterSource() != null ? farmRequestDTO.getWaterSource() : "Borewell")
                 .currentCrop(farmRequestDTO.getCurrentCrop())
+                .sowingDate(farmRequestDTO.getSowingDate())
+                .harvestingDate(farmRequestDTO.getHarvestingDate())
                 .status(farmRequestDTO.getStatus() != null ? farmRequestDTO.getStatus() : "Healthy")
                 .owner(owner)
                 .build();
@@ -52,7 +54,7 @@ public class FarmServiceImpl implements FarmService {
 
     @Override
     public List<FarmResponseDTO> getAllFarms() {
-        return farmRepository.findAll().stream()
+        return farmRepository.findAllWithOwner().stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -91,6 +93,8 @@ public class FarmServiceImpl implements FarmService {
         if (farmRequestDTO.getAreaUnit() != null) farm.setAreaUnit(farmRequestDTO.getAreaUnit());
         if (farmRequestDTO.getWaterSource() != null) farm.setWaterSource(farmRequestDTO.getWaterSource());
         if (farmRequestDTO.getCurrentCrop() != null) farm.setCurrentCrop(farmRequestDTO.getCurrentCrop());
+        if (farmRequestDTO.getSowingDate() != null) farm.setSowingDate(farmRequestDTO.getSowingDate());
+        if (farmRequestDTO.getHarvestingDate() != null) farm.setHarvestingDate(farmRequestDTO.getHarvestingDate());
         if (farmRequestDTO.getStatus() != null) farm.setStatus(farmRequestDTO.getStatus());
         farm.setOwner(owner);
 
@@ -132,6 +136,8 @@ public class FarmServiceImpl implements FarmService {
                 .areaUnit(farm.getAreaUnit() != null ? farm.getAreaUnit() : "Acres")
                 .waterSource(farm.getWaterSource() != null ? farm.getWaterSource() : "Borewell")
                 .currentCrop(farm.getCurrentCrop())
+                .sowingDate(farm.getSowingDate())
+                .harvestingDate(farm.getHarvestingDate())
                 .status(farm.getStatus() != null ? farm.getStatus() : "Healthy")
                 .ownerId(farm.getOwner().getId())
                 .ownerUsername(farm.getOwner().getUsername())

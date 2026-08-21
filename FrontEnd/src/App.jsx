@@ -1,4 +1,5 @@
 import { AppRoutes } from './routes/AppRoutes';
+import { AIChatProvider } from './context/AIChatContext';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { OfflineProvider } from './context/OfflineContext';
@@ -12,7 +13,9 @@ function App() {
         <LanguageProvider>
           <OfflineProvider>
             <ToastProvider>
-              <AppRoutes />
+              <AIChatProvider>
+                <AppRoutes />
+              </AIChatProvider>
             </ToastProvider>
           </OfflineProvider>
         </LanguageProvider>

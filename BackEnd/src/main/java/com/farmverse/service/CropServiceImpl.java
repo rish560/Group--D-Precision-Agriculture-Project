@@ -49,7 +49,7 @@ public class CropServiceImpl implements CropService {
 
     @Override
     public List<CropResponseDTO> getAllCrops() {
-        return cropRepository.findAll().stream()
+        return cropRepository.findAllWithFarmAndOwner().stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }

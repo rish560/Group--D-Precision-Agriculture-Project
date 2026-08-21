@@ -12,17 +12,17 @@ export const FarmMap = ({ farms = [] }) => {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-700">Field map</p>
-          <h3 className="text-xl font-semibold text-slate-900">Google Maps farm locations</h3>
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-gray-100">Google Maps farm locations</h3>
         </div>
-        <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+        <div className="rounded-full border border-emerald-200 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-700">
           Live geo view
         </div>
       </div>
-      <div className="overflow-hidden rounded-[1.5rem] border border-slate-100">
+      <div className="overflow-hidden rounded-[1.5rem] border border-slate-100 dark:border-slate-700">
         <iframe title="Farm locations" src={MAPS_EMBED_URL} className="h-72 w-full" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
       </div>
-      <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
-        <div className="flex items-center gap-2 font-semibold text-slate-900">
+      <div className="rounded-2xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4 text-sm text-slate-600 dark:text-gray-400">
+        <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-gray-100">
           <Navigation className="h-4 w-4 text-emerald-700" />
           Managed regions
         </div>

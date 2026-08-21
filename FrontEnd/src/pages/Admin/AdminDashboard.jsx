@@ -1,3 +1,56 @@
-import { Activity, BarChart3, MapPin, Users, Wheat } from 'lucide-react';
+import { BarChart3, MapPin, ShieldCheck, Users, Wheat } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { RoleWorkspace } from '../../components/dashboard/RoleWorkspace';
-export const AdminDashboard = () => <RoleWorkspace eyebrow="System control center" title="Platform administration" summary="Manage users, farm managers, farms, crops, notifications, and organization settings." stats={[{ title: 'Registered users', value: '128', icon: Users }, { title: 'Managed farms', value: '24', icon: MapPin }, { title: 'Active crops', value: '61', icon: Wheat }, { title: 'Platform health', value: '99.98%', icon: Activity }]} actions={[{ label: 'Manage Users', to: '/dashboard/users', icon: Users }, { label: 'Farm Managers', to: '/dashboard/farm-managers', icon: Users }, { label: 'Manage Farms', to: '/dashboard/farms', icon: MapPin }]} />;
+import { getFarms } from '../../api/farmApi';
+import { getUsers } from '../../api/userApi';
+
+export const AdminDashboard = () => {
+  const { t } = useLanguage();
+  const [counts, setCounts] = useState({ users: null, farms: null });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCounts = async () => {
+      const [usersResult, farmsResult] = await Promise.allSettled([
+        getUsers(),
+        getFarms(),
+      ]);
+
+      if (cancelled) return;
+
+      setCounts({
+        users: usersResult.status === 'fulfilled' ? (usersResult.value || []).length : null,
+        farms: farmsResult.status === 'fulfilled' ? (farmsResult.value || []).length : null,
+      });
+    };
+
+    loadCounts();
+    return () => { cancelled = true; };
+  }, []);
+
+  const formatCount = (value) => (value === null ? '—' : String(value));
+
+  return (
+    <RoleWorkspace
+      eyebrow={t('adminEyebrow')}
+      title={t('adminTitle')}
+      summary={t('adminSummary')}
+      heroIcon={ShieldCheck}
+      heroColor="violet"
+      stats={[
+        { title: t('statRegisteredUsers'), value: formatCount(counts.users), icon: Users, to: '/dashboard/users', color: 'violet' },
+        { title: t('statManagedFarms'), value: formatCount(counts.farms), icon: MapPin, to: '/dashboard/farms', color: 'emerald' },
+      ]}
+      actions={[
+        { label: t('manageUsers'), to: '/dashboard/users', icon: Users },
+        { label: t('viewAdmins'), to: '/dashboard/admins', icon: Users },
+        { label: t('actionFarmManagers'), to: '/dashboard/farm-managers', icon: Users },
+        { label: t('viewGuests'), to: '/dashboard/guests', icon: Users },
+        { label: t('actionManageFarms'), to: '/dashboard/farms', icon: MapPin },
+        { label: t('viewCrops'), to: '/dashboard/crops', icon: Wheat },
+      ]}
+    />
+  );
+};

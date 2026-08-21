@@ -42,24 +42,7 @@ The system is designed to keep farm data organized, improve monitoring, and give
 
 ## System Architecture
 
-\`\`\`
-┌─────────────────────────────────────────────────────────┐
-│                 FRONTEND (Top Layer)                    │
-│      React.js / HTML5 / CSS3 (User Dashboards)          │
-└────────────────────────────┬────────────────────────────┘
-                             │ (REST API / JSON Data)
-                             ▼
-┌─────────────────────────────────────────────────────────┐
-│                BACKEND (Middle Layer)                   │
-│       Spring Boot MVC / Spring Data JPA (Java)          │
-└────────────────────────────┬────────────────────────────┘
-                             │ (JDBC Connections)
-                             ▼
-┌─────────────────────────────────────────────────────────┐
-│               DATABASE (Storage Layer)                  │
-│               MySQL Relational Database                 │
-└─────────────────────────────────────────────────────────┘
-\`\`\`
+```
 
 ## Implementation Roadmap
 1. **Database Setup – Sprint 1:** Build local MySQL tables and create Java JPA entity mappings for User, Farm, and Crop.

@@ -4,7 +4,7 @@ const variantClasses = {
   primary:
     'bg-green-600 text-white hover:bg-green-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
   secondary:
-    'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
+    'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
   danger:
     'bg-red-600 text-white hover:bg-red-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
 };

@@ -23,9 +23,8 @@ FarmVerse is a precision agriculture platform aimed at helping farmers make data
 
 | Name | Role | Responsibility |
 |------|------|-----------------|
-| Pooja | Frontend Developer | UI components, dashboard views (React.js, Tailwind CSS) |
 | Roshini | Frontend & Backend Developer | UI development and Spring Boot backend logic |
-| Sangita | Frontend Developer | Styling, user experience (React.js, Tailwind CSS) |
+| Sangita | Frontend Developer | UI development, Styling, user experience (React.js, Tailwind CSS) |
 | Rishab | Backend & Database Developer | Spring Boot APIs and MySQL database design |
 | Shirisha | Documentation / Presentation | Prepared the project presentation (PPT) |
 

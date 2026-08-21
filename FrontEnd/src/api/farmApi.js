@@ -78,6 +78,8 @@ const mapFarmToBackend = (payload = {}) => {
     areaUnit: payload.areaUnit || 'Acres',
     waterSource: payload.waterSource || 'Borewell',
     currentCrop: payload.currentCrop || '',
+    sowingDate: payload.sowingDate || null,
+    harvestingDate: payload.harvestingDate || null,
     status: payload.status || 'Healthy',
     ownerId,
   };

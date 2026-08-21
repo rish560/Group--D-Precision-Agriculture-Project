@@ -33,6 +33,9 @@ public class FarmRequestDTO {
 
     private String currentCrop;
 
+    private java.time.LocalDate sowingDate;
+    private java.time.LocalDate harvestingDate;
+
     private String status;
 
     @NotNull(message = "Owner ID is required")

@@ -7,15 +7,14 @@ import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import { Unauthorized } from '../pages/Unauthorized';
 import { RoleDashboard } from '../pages/RoleDashboard';
-import { ReportsPage } from '../pages/Reports';
 import { SettingsPage } from '../pages/Settings';
 import { ProfilePage } from '../pages/Profile';
-import { AboutPage } from '../pages/About';
 import { HelpPage } from '../pages/Help';
+import { AIAssistant } from '../pages/AIAssistant';
+import { ExpenseTracker } from '../pages/ExpenseTracker';
 import { ProtectedRoute } from '../components/layout/ProtectedRoute';
 import { roleHomeRoute } from '../config/roleRoutes';
 import { NotificationsPage } from '../pages/DashboardPages';
-import { FarmerSoilPage } from '../pages/Farmer/RolePages';
 import { RecordManagement } from '../pages/RecordManagement';
 
 // Valid roles: ADMIN | FARM_MANAGER | GUEST  (FARMER has been removed)
@@ -62,14 +61,7 @@ export const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="add-crop"
-            element={
-              <ProtectedRoute allowedRoles={MGMT_ROLES}>
-                <RecordManagement resource="crops" canManage title="Add and manage crops" />
-              </ProtectedRoute>
-            }
-          />
+          {/* /add-crop route removed — Add Crop feature has been removed from the app */}
           <Route
             path="my-farms"
             element={
@@ -140,26 +132,6 @@ export const AppRoutes = () => {
             }
           />
 
-          {/* ── Insights ── */}
-          <Route
-            path="soil"
-            element={
-              <ProtectedRoute allowedRoles={ALL_ROLES}>
-                <FarmerSoilPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ── Reports / Analytics ── */}
-          <Route
-            path="reports"
-            element={
-              <ProtectedRoute allowedRoles={MGMT_ROLES}>
-                <ReportsPage />
-              </ProtectedRoute>
-            }
-          />
-
           {/* ── Notifications / Settings ── */}
           <Route
             path="notifications"
@@ -183,18 +155,26 @@ export const AppRoutes = () => {
 
           {/* ── Information pages ── */}
           <Route
-            path="about"
-            element={
-              <ProtectedRoute allowedRoles={ALL_ROLES}>
-                <AboutPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="help"
             element={
               <ProtectedRoute allowedRoles={ALL_ROLES}>
                 <HelpPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="ai-assistant"
+            element={
+              <ProtectedRoute allowedRoles={ALL_ROLES}>
+                <AIAssistant />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="expense-tracker"
+            element={
+              <ProtectedRoute allowedRoles={MGMT_ROLES}>
+                <ExpenseTracker />
               </ProtectedRoute>
             }
           />

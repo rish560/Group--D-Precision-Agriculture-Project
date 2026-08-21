@@ -1,8 +1,8 @@
-# FarmVerse – Precision Agriculture Platform
+# Intelligent Farm Operations Platform with Smart Agro Precision System
 
 ## Project Overview
 
-FarmVerse is a web-based Precision Agriculture Platform designed to help farmers and agricultural managers manage farms, crops, and agricultural activities digitally. Instead of maintaining records manually, the application stores all farm-related information securely in a centralized database. It simplifies farm management by allowing users to add, update, and view farm and crop details through an easy-to-use interface.
+This is a web-based Intelligent Farm Operations Platform with Smart Agro Precision System, designed to help farmers and agricultural managers manage farms, crops, and agricultural activities digitally. Instead of maintaining records manually, the application stores all farm-related information securely in a centralized database. It simplifies farm management by allowing users to add, update, and view farm and crop details through an easy-to-use interface.
 
 The platform follows a role-based system where different users have different permissions. It is developed using React.js for the frontend, Spring Boot (Java) for the backend, and MySQL as the database.
 
@@ -258,6 +258,9 @@ Completed screens include:
 * Login Page
 * Registration Page
 * Dashboard
+
+---
+
 * Farm Management Pages
 * Crop Management Pages
 * Navigation Components
@@ -325,6 +328,40 @@ Key integration work includes:
 
 ---
 
+# Milestone 4 Progress
+
+## Dark Mode
+
+Dark Mode is available across all modules to reduce eye strain and improve usability at night.
+
+## AI Features
+
+AI-powered features help users get smarter recommendations, search faster, and automate simple daily tasks.
+
+## UI/UX Redesign
+
+The overall layout and color system have been refreshed to make the application look cleaner, faster, and more modern.
+
+## Dynamic Farm Cards
+
+Farm cards now feel more interactive and display high-quality crop images based on the selected farm. For example, if a farm grows apples, an apple image appears automatically so users can identify farms at a glance.
+
+## Live Mandi Price Updates
+
+The Mandi Prices module has been updated to show current crop market prices, helping users make informed selling decisions based on nearby market rates.
+
+## Expense Tracker
+
+An Expense Tracker has been added so users can record and monitor farm-related expenses in one place.
+
+## Profit Tracking
+
+Along with expense tracking, the platform now shows profit calculations, giving users a clear view of their farm's overall financial performance.
+
+## Performance & Testing
+
+These design updates have been paired with performance checks and testing to keep the app loading quickly and running smoothly across screens.
+
 ## UI Updates & Improvements
 
 Based on Milestone 2 feedback and real data from the backend, the UI has been refined:
@@ -350,7 +387,7 @@ Based on Milestone 2 feedback and real data from the backend, the UI has been re
 ## Documentation Updated
 
 * Updated Frontend and Backend documentation to reflect integrated APIs
-* Updated Project Plan with Milestone 3 status
+* Updated Project Plan with Milestone 4 status
 * Updated GitHub README with current project status
 
 ---
@@ -359,37 +396,36 @@ Based on Milestone 2 feedback and real data from the backend, the UI has been re
 
 * Regular commits for integration-related changes
 * Feature branches merged after testing
-* Updated version history reflecting Milestone 3 work
+* Updated version history reflecting Milestone 4 work
 
 # Project Workflow
 
-```
 User
-   │
-   ▼
+│
+▼
 React Frontend
 (Login, Dashboard, Farm & Crop Pages)
-   │
-   ▼
+│
+▼
 REST API Request
-   │
-   ▼
+│
+▼
 Spring Boot Backend
 (Authentication & Business Logic)
-   │
-   ▼
+│
+▼
 MySQL Database
 (Store & Retrieve Data)
-   │
-   ▼
+│
+▼
 Backend Response
-   │
-   ▼
+│
+▼
 Frontend Displays Updated Information
-```
+
 
 ---
 
 # Conclusion
 
-FarmVerse is a full-stack web application that digitizes farm and crop management. The React.js frontend provides a responsive user interface, Spring Boot handles the business logic and secure API communication, and MySQL stores all user, farm, and crop information. Git and GitHub enable collaborative development and version control, making the project scalable, maintainable, and suitable for modern precision agriculture applications.
+The platform is a full-stack web application that digitizes farm and crop management. The React.js frontend provides a responsive user interface, Spring Boot handles the business logic and secure API communication, and MySQL stores all user, farm, and crop information. Git and GitHub enable collaborative development and version control, making the project scalable, maintainable, and suitable for modern smart agro precision systems.

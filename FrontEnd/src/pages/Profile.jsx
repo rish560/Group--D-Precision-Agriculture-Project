@@ -4,33 +4,46 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
+import { normalizeRole } from '../config/roleRoutes';
 
 const inputClass =
-  'mt-1.5 w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100';
+  'mt-1.5 w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-gray-100 outline-none transition focus:border-green-500 dark:focus:border-green-400 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-green-100';
+
+const ROLE_LABEL_KEYS = {
+  ADMIN: 'adminRole',
+  FARM_MANAGER: 'farmManagerRole',
+  GUEST: 'guestRole',
+};
 
 export const ProfilePage = () => {
   const { user, updateProfile } = useAuth();
   const { addToast } = useToast();
+  const { t } = useLanguage();
 
   const profile = user || {
-    fullName: 'Guest User',
+    fullName: t('guestUserFallback'),
     email: 'guest@farmverse.com',
-    role: 'Guest',
+    role: t('guestRole'),
     phone: '',
     address: '',
     joinedAt: '14 July 2026',
   };
 
+  const translatedRole = user
+    ? (ROLE_LABEL_KEYS[normalizeRole(user.role)] ? t(ROLE_LABEL_KEYS[normalizeRole(user.role)]) : user.role)
+    : profile.role;
+
   const [dialog, setDialog] = useState(null);
   const [draft, setDraft] = useState(profile);
 
   const details = [
-    [UserCircle, 'Full Name', profile.fullName],
-    [Mail, 'Email', profile.email],
-    [ShieldCheck, 'Role', profile.role],
-    [Phone, 'Phone Number', profile.phone || 'Not provided'],
-    [MapPin, 'Address', profile.address || 'Not provided'],
-    [CalendarDays, 'Join Date', profile.joinedAt || 'Account active'],
+    [UserCircle, t('fullNameLabel'), profile.fullName],
+    [Mail, t('emailLabel'), profile.email],
+    [ShieldCheck, t('roleLabel'), translatedRole],
+    [Phone, t('phoneNumberLabel'), profile.phone || t('notProvided')],
+    [MapPin, t('addressLabel'), profile.address || t('notProvided')],
+    [CalendarDays, t('joinDateLabel'), profile.joinedAt || t('accountActive')],
   ];
 
   const save = (e) => {
@@ -38,7 +51,7 @@ export const ProfilePage = () => {
     updateProfile(draft);
     setDialog(null);
     addToast(
-      dialog === 'password' ? 'Password updated successfully.' : 'Profile updated successfully.',
+      dialog === 'password' ? t('passwordUpdatedToast') : t('profileUpdatedToast'),
       'success',
     );
   };
@@ -59,28 +72,28 @@ export const ProfilePage = () => {
 
         <div className="relative px-6 pb-6 pt-4 sm:px-8">
           {/* Avatar */}
-          <div className="absolute -top-8 left-6 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white bg-green-50 text-green-600 shadow-md sm:left-8">
+          <div className="absolute -top-8 left-6 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 shadow-md sm:left-8">
             <UserCircle className="h-10 w-10" />
           </div>
 
           <div className="flex flex-col justify-between gap-4 pt-10 sm:flex-row sm:items-center sm:pt-4">
             <div>
-              <p className="text-lg font-bold text-gray-900">{profile.fullName}</p>
-              <p className="text-sm text-gray-500">{profile.email}</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{profile.fullName}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{profile.email}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
                 onClick={() => { setDraft(profile); setDialog('profile'); }}
                 className="gap-1.5 px-3.5 py-2 text-sm"
               >
-                <Pencil className="h-3.5 w-3.5" /> Edit Profile
+                <Pencil className="h-3.5 w-3.5" /> {t('editProfileButton')}
               </Button>
               <Button
                 variant="secondary"
                 onClick={() => setDialog('password')}
                 className="gap-1.5 px-3.5 py-2 text-sm"
               >
-                <KeyRound className="h-3.5 w-3.5" /> Change Password
+                <KeyRound className="h-3.5 w-3.5" /> {t('changePasswordButton')}
               </Button>
             </div>
           </div>
@@ -88,12 +101,12 @@ export const ProfilePage = () => {
           {/* Details grid */}
           <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
             {details.map(([Icon, label, value]) => (
-              <div key={label} className="rounded-lg border border-gray-100 bg-gray-50 p-3.5">
-                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                  <Icon className="h-3.5 w-3.5 text-green-600" />
+              <div key={label} className="rounded-lg border border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800 p-3.5">
+                <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+                  <Icon className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                   {label}
                 </div>
-                <p className="mt-1.5 font-medium text-gray-900">{value}</p>
+                <p className="mt-1.5 font-medium text-gray-900 dark:text-gray-100">{value}</p>
               </div>
             ))}
           </div>
@@ -110,18 +123,18 @@ export const ProfilePage = () => {
           <Card className="w-full max-w-md" hover={false}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-green-600">
-                  Account settings
+                <p className="text-xs font-semibold uppercase tracking-widest text-green-600 dark:text-green-400">
+                  {t('accountSettingsLabel')}
                 </p>
-                <h2 className="mt-1 text-lg font-bold text-gray-900">
-                  {dialog === 'profile' ? 'Edit Profile' : 'Change Password'}
+                <h2 className="mt-1 text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {dialog === 'profile' ? t('editProfileButton') : t('changePasswordButton')}
                 </h2>
               </div>
               <button
                 type="button"
                 aria-label="Close dialog"
                 onClick={() => setDialog(null)}
-                className="rounded-lg border border-gray-200 p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
+                className="rounded-lg border border-gray-200 dark:border-slate-700 p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 hover:text-gray-600 transition"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -131,11 +144,11 @@ export const ProfilePage = () => {
               {dialog === 'profile' ? (
                 <>
                   {[
-                    ['fullName', 'Full name'],
-                    ['phone', 'Phone number'],
-                    ['address', 'Address'],
+                    ['fullName', t('fullNameLabel')],
+                    ['phone', t('phoneNumberLabel')],
+                    ['address', t('addressLabel')],
                   ].map(([key, label]) => (
-                    <label key={key} className="block text-sm font-medium text-gray-700">
+                    <label key={key} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       {label}
                       <input
                         required
@@ -148,22 +161,22 @@ export const ProfilePage = () => {
                 </>
               ) : (
                 <>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Current password
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t('currentPasswordLabel')}
                     <input required type="password" className={inputClass} />
                   </label>
-                  <label className="block text-sm font-medium text-gray-700">
-                    New password
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {t('newPasswordLabel')}
                     <input required minLength={8} type="password" className={inputClass} />
                   </label>
                 </>
               )}
-              <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+              <div className="flex justify-end gap-2 border-t border-gray-100 dark:border-slate-800 pt-4">
                 <Button variant="secondary" type="button" onClick={() => setDialog(null)} className="px-4 py-2 text-sm">
-                  Cancel
+                  {t('cancelButton')}
                 </Button>
                 <Button type="submit" className="px-4 py-2 text-sm">
-                  Save changes
+                  {t('saveChangesButton')}
                 </Button>
               </div>
             </form>
