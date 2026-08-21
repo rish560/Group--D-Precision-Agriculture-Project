@@ -1,7 +1,7 @@
-# FarmVerse Backend Documentation
+# Agro Backend Documentation
 
 ## Overview
-FarmVerse is a Precision Agriculture Platform built with Spring Boot. The backend provides a REST API for managing Users, Farms, and Crops with JWT-based authentication.
+Intelligent Farm Operations Platform with Smart Agro Precision System built with Spring Boot. The backend provides a REST API for managing Users, Farms, and Crops with JWT-based authentication.
 
 ---
 
