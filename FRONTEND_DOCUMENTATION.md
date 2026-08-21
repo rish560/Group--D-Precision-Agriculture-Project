@@ -1,6 +1,6 @@
 ================================================================================
-         FARMVERSE – FRONTEND COMPLETE DOCUMENTATION
-         Precision Agriculture Management Platform
+         Agro – FRONTEND COMPLETE DOCUMENTATION
+    Intelligent Farm Operations Platform with Smart Agro Precision System
 ================================================================================
 
 --------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ Shared layout used by ALL dashboard pages. Accepts props:
 
 SIDEBAR:
   - Dark gradient background (gray-950 → gray-900 → gray-950)
-  - FarmVerse logo (click → go to landing page)
+  - Agro logo (click → go to landing page)
   - User pill with avatar initial, username, role, green online dot (glassmorphism)
   - Navigation links with animated active indicator (Framer Motion layoutId)
   - Icon scale animation on hover
